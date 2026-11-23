@@ -82,6 +82,7 @@
   #voces .lista.tipos { grid-template-columns: repeat(6, 1fr); }
   .fk.idioma.on { background: linear-gradient(var(--qy-azul-hi), var(--qy-azul)); color: #fff; border-color: #2c3a5e; }
   .fl.izq { transform: translate(0, -50%); }
+  .fl.marca { color: #c9d2ee; }
   .chapa { font: 700 max(6px, 0.7cqw)/1 system-ui, sans-serif !important; font-style: normal !important; letter-spacing: 0.16em; color: #fff !important; background: var(--qy-ambar);
     padding: 0.3cqw 0.6cqw; border-radius: 0.25cqw; }
 
@@ -90,6 +91,7 @@
   #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0.4cqw; padding: 0.9cqw 1.6cqw 0.8cqw;
     color: #1f2a14; font: 700 1.3cqw/1.25 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.03em; }
   #mixlcd .top { display: flex; align-items: center; gap: 0.8cqw; white-space: nowrap; overflow: hidden; }
+  #mixlcd .ctx { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   #mixlcd .pill { background: #1f2a14; color: var(--tint, #bad18f); border-radius: 1cqw; padding: 0.15cqw 0.9cqw; }
   #mixlcd .help { font-weight: 600; font-size: 1.2cqw; line-height: 1.22; min-height: 0; overflow: hidden; display: flex; align-items: center; }
   #mixlcd .last { font-size: 1.05cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -110,7 +112,7 @@
     font: 600 0.88cqw/1 ui-monospace, Menlo, monospace; cursor: pointer; text-align: left; }
   .voz:hover, .voz:focus-visible { background: #3f4f7c; outline: none; }
   .voz span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.7cqw !important; letter-spacing: 0.16em; opacity: 0.6; }
+  .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.7cqw !important; letter-spacing: 0.16em; opacity: 0.85; color: var(--qy-tenue) !important; }
   .grp::after { content: ""; flex: 1; height: 0.08cqw; background: currentColor; opacity: 0.6; }
   .perillas { display: grid; gap: 0.25cqw; }
   .perillas.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -127,7 +129,8 @@
   .mk.centro { box-shadow: 0 -0.95cqw 0 -0.82cqw var(--qy-tinta); }   /* la marca de las 12 en punto del paneo */
   .p-nom { font-size: 0.78cqw !important; line-height: 1 !important; }
   .val { font: 500 0.88cqw/1 ui-monospace, Menlo, Consolas, monospace !important; font-style: normal !important; font-variant-numeric: tabular-nums; }
-  .tira.callada .perilla, .tira.callada .fader, .tira.callada .voz { opacity: 0.45; }
+  .tira.callada .mk, .tira.callada .fader-pista, .tira.callada .fader-escala, .tira.callada .voz { opacity: 0.45; }
+  .tira.callada .val, .tira.callada .p-nom, .tira.callada .fader-valor { opacity: 0.75; }
   /* el botón QY: encendido = el QY100 suena en este canal */
   .fk.qy { height: 2.7cqw; flex-direction: row; gap: 0.5cqw; font-size: 0.95cqw; font-style: normal; }
   .fk.qy i { width: 0.8cqw; height: 0.8cqw; border-radius: 50%; background: #5a6078; box-shadow: inset 0 0.08cqw 0.1cqw rgba(0,0,0,.5); }
@@ -159,8 +162,8 @@
     filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,.4)); }
   .cinta:hover { background-color: #f7f5ee; }
   .cinta:focus { background-color: #fffdf6; box-shadow: inset 0 0 0 0.15cqw var(--qy-azul); }
-  .cinta::placeholder { font: 600 0.72cqw/1 system-ui, sans-serif; letter-spacing: 0.12em; color: #5d626c; }
-  .cinta:placeholder-shown { transform: none; background: rgba(255,255,255,.25); clip-path: none; filter: none; outline: 0.1cqw dashed #6b7078; outline-offset: -0.1cqw; border-radius: 0.3cqw; }
+  .cinta::placeholder { font: 700 0.72cqw/1 system-ui, sans-serif; letter-spacing: 0.12em; color: var(--qy-tenue); }
+  .cinta:placeholder-shown { transform: none; background: rgba(255,255,255,.5); clip-path: none; filter: none; outline: 0.1cqw dashed var(--qy-tenue); outline-offset: -0.1cqw; border-radius: 0.3cqw; }
 
   /* ---- el selector de voces: tapa la franja de arriba mientras está abierto ---- */
   #voces { position: absolute; z-index: 5; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.6cqw; padding: 0.8cqw 1cqw; box-sizing: border-box;
@@ -397,7 +400,7 @@
   place(document.getElementById('lcdwin'), 850, 104, 950, 150);
   text('<b>QY</b> MIXER', 160, 44, 34);
   text(`<span class="chapa">${L.chapa}</span>`, 160, 84, 0);
-  text('<span class="xg">QY100</span>', 1280, 196, 24);
+  text('<span class="xg">QY100</span>', 1290, 195, 22, 'marca');
 
   // ---- luces: puerto y envío ----
   const ledPuerto = deco('fled ambar', 86, 140, 26, 26);
@@ -429,8 +432,7 @@
     key(`<i></i>${L.cancion}`, 128, 245, 168, 54, 'modo azul wide', () => setView(0), L.h.modoCancion, '1'),
     key(`<i></i>${L.patron}`, 304, 245, 168, 54, 'modo azul wide', () => setView(1), L.h.modoPatron, '3'),
   ];
-  text(L.canalesSub.toUpperCase(), 520, 212, 14);
-  const bankKeys = ['1–8', '9–16'].map((r, b) => key(r, 470 + b * 100, 248, 96, 46, 'banco',
+  const bankKeys = ['1–8', '9–16'].map((r, b) => key(`${r}<span class="sub">${L.canalesSub}</span>`, 470 + b * 104, 245, 100, 54, 'banco',
     () => { if (mode === 0) setView(0, b); }, () => (mode === 0 ? L.h.banco(r) : L.h.bancoOff), b === 1 ? '2' : ''));
   const readKey = key(`${L.leer}<span class="sub">${L.leerSub}</span>`, 1110, 245, 200, 54, 'wide', () => say(L.s.leer), L.h.leer, 'L');
   key(`${L.puertoMidi}<span class="sub">${L.puertoSub}</span>`, 1350, 245, 250, 54, 'oscura wide', () => say(L.s.puerto), L.h.puerto);
@@ -677,7 +679,7 @@
     const estado = p < 16 ? (st.qy ? L.qySuena : L.qyCallado) : (st.vol0 ? 'VOL 0' : `vol ${st.vol}`);
     const ctx = `${quien} · ${vozTxt(st.voz).replace(/^\d+ /, '')}${sinte(p) ? ' · ' + sinte(p) : ''} · ${estado}`;
     document.getElementById('mixlcd').innerHTML =
-      `<div class="top"><span class="pill">QY100</span><span>${pg.lcd}</span><span>›</span><span>${ctx}</span></div>`
+      `<div class="top"><span class="pill">QY100</span><span>${pg.lcd}</span><span>›</span><span class="ctx">${ctx}</span></div>`
       + `<div class="help">${help || (primera ? L.bienvenida : '')}</div>`
       + `<div class="last">${last}</div>`;
     const h = document.querySelector('#mixlcd .help');
@@ -687,7 +689,10 @@
     const p = PAGES[page].parts[i], s = strips[i], st = state[p];
     s.num.textContent = p < 16 ? String(p + 1) : PATT[p - 16];
     s.rol.textContent = p < 16 ? '' : ROL[p - 16];
-    s.voz.innerHTML = `<span>${vozTxt(st.voz)}</span><span>▾</span>`;
+    s.voz.innerHTML = `<span>${vozTxt(st.voz).replace(/^\d+ /, '')}</span><span>▾</span>`;
+    s.voz.title = vozTxt(st.voz);
+    encoge(s.voz.firstChild, 0.88, 0.55);
+    encoge(s.rol, 0.78, 0.5, s.rol.parentElement);
     const vol = p >= 16 && st.vol0 ? 0 : st.vol;
     s.tapa.style.top = (100 - vol / 127 * 100) + '%';
     s.vol.textContent = p >= 16 && st.vol0 ? `0 (${st.vol})` : st.vol;
@@ -701,6 +706,13 @@
     }
     s.tira.classList.toggle('callada', p < 16 ? !st.qy : st.vol0);
     if (document.activeElement !== s.cinta) { s.cinta.value = sinte(p); s.fitCinta(); }
+  }
+  // achica la letra de un texto hasta que quepa entero (sin cortarlo con «…»)
+  function encoge(e, max, min, caja) {
+    if (!e) return;
+    e.style.fontSize = '';
+    const cabe = () => (caja ? e.getBoundingClientRect().right <= caja.getBoundingClientRect().right + 0.5 : e.scrollWidth <= e.clientWidth + 1);
+    for (let t = max; t >= min; t -= 0.03) { e.style.setProperty('font-size', t + 'cqw', 'important'); if (cabe()) break; }
   }
   function paintSel() { strips.forEach((s, i) => s.tira.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
