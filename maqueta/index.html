@@ -5,106 +5,157 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QY100 Mixer — maqueta</title>
 <!--
-  Maqueta del QY100 Mixer: una sola pantalla, sin scroll, con la carcasa del emulador QYΩ.
-  Nada de esto manda MIDI: los valores son de muestra y los botones solo cambian la vista.
-  La gráfica es la del emulador de Doffu (qy-look.css, GPL-3.0). El logo y el nombre DOFFU
-  no son GPL y no se usan: la marca de esta app es provisional.
-  La cinta con rotulador viene de MESA 101; la letra es Permanent Marker (Apache-2.0, en fuentes/).
+  Maqueta del QY100 Mixer: una sola pantalla, sin scroll. Nada de esto manda MIDI.
 
-  Revisión de UX (2026-11-22), lo que cambió y por qué:
-  - El nombre de cada canal es una cinta al pie de la tira: se hace clic y se escribe. Vacía dice
-    PEGAR CINTA. Antes había una tecla NAMES que no hacía nada.
-  - Cada perilla dice su valor debajo, y las de envío van agrupadas bajo ENVÍOS.
-  - La pantalla verde ya no repite los faders: dice el estado de la conexión, qué hace el control
-    que está bajo el mouse y qué acaba de pasar. Así se explica el MUTE, que no hace lo mismo en
-    canción que en patrón.
-  - Las acciones llevan su nombre entero (ENVIAR TODO, LEER DEL QY, PUERTO MIDI, PIEL), y las
-    páginas dicen qué canales cubren.
-  - Faders más largos; atajos de teclado a la vista, como en el emulador.
+  De dónde sale cada cosa:
+  - La carcasa (cuerpo moldeado, bisel, pantalla, teclas) es la del emulador QYΩ de Doffu
+    (qy-look.css, GPL-3.0). El logo y el nombre DOFFU no son GPL y no se usan.
+  - Los colores son los del QY100 real: carcasa plateada, marco azul de la pantalla, teclas
+    grises y azules (los mismos que «QY100 Part», m4l_qy100.py). Una sola piel (Felipe).
+  - Las tiras y la cinta con rotulador vienen de MESA 101. La letra de la cinta es
+    Permanent Marker (Apache-2.0, en fuentes/).
+  - Las 530 voces (voces.json) salen de qy100-syx/datos/bancos.json y voces.json.
+
+  Decisiones de Felipe (2026-11-22), tras la crítica de Antigravity (E38):
+  - La cinta va por canal MIDI: el canal 4 y la pista BA del patrón son el mismo cable.
+  - En canción no hay MUTE sino un botón «QY»: encendido, el QY100 suena en ese canal;
+    apagado, suena solo el sinte de la cinta. Un MUTE rojo al lado de «MINITAUR» se leía
+    como «el Minitaur está callado», que es justo lo contrario.
+  - En patrón el botón es «VOL 0», con aviso: puede bajar también el sinte (CC 7).
+  - Cada tira lleva su voz del QY100, a la vista y con clic para cambiarla.
 -->
 <link rel="stylesheet" href="qy-look.css">
 <style>
   @font-face { font-family: 'Permanent Marker'; src: url('fuentes/PermanentMarker-Regular.ttf') format('truetype'); font-display: swap; }
-  html, body { height: 100%; overflow: hidden; }
+  :root {
+    /* los colores del QY100 */
+    --qy-plata: #d6d7dd; --qy-plata-hi: #e8e9ee; --qy-plata-lo: #b9bbc4;
+    --qy-azul-marco: #334167; --qy-azul: #496496; --qy-azul-hi: #6079ad;
+    --qy-tinta: #242c40; --qy-tenue: #4d5570; --qy-gris: #b9bac6;
+    --qy-rojo: #b8433f; --qy-verde: #2f8a63; --qy-ambar: #d99a2b;
+    --bg: #16181d;
+  }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); }
   main { max-width: none; height: 100%; padding: 8px; box-sizing: border-box; display: grid; place-items: center; }
-  #face { width: min(100%, calc((100vh - 16px) * 1700 / 1000)); }
 
-  /* --- la pantalla: estado, ayuda y lo último que pasó --- */
+  /* ---- la piel QY100, sobre la carcasa del emulador ---- */
+  #face { width: min(100%, calc((100vh - 16px) * 1700 / 1000)); background: linear-gradient(var(--qy-plata-hi), var(--qy-plata) 55%, var(--qy-plata-lo)); color: var(--qy-tinta); }
+  .cap.l { background: linear-gradient(90deg, #8d909a, #b4b6bf 60%, #cfd0d6); box-shadow: inset -0.15cqw 0 0 rgba(255,255,255,.5), 0.3cqw 0 0.6cqw rgba(0,0,0,.25); }
+  .cap.r { background: linear-gradient(270deg, #8d909a, #b4b6bf 60%, #cfd0d6); box-shadow: inset 0.15cqw 0 0 rgba(255,255,255,.5), -0.3cqw 0 0.6cqw rgba(0,0,0,.25); }
+  .lip { background: linear-gradient(180deg, #c5c7ce, #a7a9b3 45%, #8e909b); box-shadow: inset 0 0.15cqw 0 rgba(255,255,255,.6), 0 -0.3cqw 0.6cqw rgba(0,0,0,.2); }
+  .well { background: linear-gradient(#babcc5, #aeb0ba); box-shadow: inset 0 0.45cqw 0.8cqw rgba(30,35,55,.45), 0 0.1cqw 0 rgba(255,255,255,.7); }
+  .groove { background: linear-gradient(#9fa1ab 50%, rgba(255,255,255,.8) 50%); }
+  #bezel { background: linear-gradient(#3c4a72, var(--qy-azul-marco)); box-shadow: inset 0 0 0 0.2cqw #26304f; }
+  #lcdwin { box-shadow: 0 0 0 0.3cqw #1b2238; }
+  .fl { color: var(--qy-tinta); }
+  .fk { background: linear-gradient(#d3d4dc, var(--qy-gris)); color: var(--qy-tinta); border-color: #6f7385; }
+  .fk:hover { background: linear-gradient(#e1e2e8, #c8c9d3); }
+  .fk.azul { background: linear-gradient(var(--qy-azul-hi), var(--qy-azul)); color: #fff; border-color: #2c3a5e; }
+  .fk.azul:hover { background: linear-gradient(#6e88bd, #52699c); }
+  .fk.page.on { background: linear-gradient(#2c3a62, #1f2a4a); box-shadow: inset 0 0.15cqw 0.3cqw rgba(0,0,0,.4); }
+  .fk.oscura { background: linear-gradient(#4a4f5c, #2b2f3a); color: #eef0f6; border-color: #1b1e26; }
+  .fk .kb { opacity: 0.85; background: rgba(255,255,255,.35); border-radius: 0.2cqw; padding: 0 0.25cqw; }
+  .fk.azul .kb, .fk.oscura .kb { background: rgba(0,0,0,.25); }
+  .fk .sub { display: block; font-size: 0.7em; font-weight: 600; opacity: 0.8; font-style: normal; margin-top: 0.25em; }
+  .fk.wide { font-size: max(7px, 1.02cqw); }
+  .ring { border-color: rgba(36,44,64,.35); background: rgba(255,255,255,.25); }
+  .fled { --ledbd: #59607a; }
+  .fled.ambar { background-color: var(--qy-ambar); box-shadow: 0 0 0.7cqw var(--qy-ambar); }
+  .chapa { font: 700 max(6px, 0.7cqw)/1 system-ui, sans-serif !important; font-style: normal !important; letter-spacing: 0.16em; color: #fff !important; background: var(--qy-ambar);
+    padding: 0.3cqw 0.6cqw; border-radius: 0.25cqw; }
+
+  /* ---- la pantalla: contexto de la tira, ayuda, lo último que pasó ---- */
   #lcdwrap { width: 100%; height: 100%; }
   #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0.4cqw; padding: 0.9cqw 1.6cqw 0.8cqw;
-    color: #1f2a14; font: 700 1.45cqw/1.25 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
-  #mixlcd .top { display: flex; align-items: center; gap: 1.1cqw; text-transform: uppercase; }
+    color: #1f2a14; font: 700 1.3cqw/1.25 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.03em; }
+  #mixlcd .top { display: flex; align-items: center; gap: 0.8cqw; white-space: nowrap; overflow: hidden; }
   #mixlcd .pill { background: #1f2a14; color: var(--tint, #bad18f); border-radius: 1cqw; padding: 0.15cqw 0.9cqw; }
-  #mixlcd .grow { flex: 1; }
-  #mixlcd .dot { display: inline-block; width: 1cqw; height: 1cqw; border-radius: 50%; border: 0.18cqw solid #1f2a14; vertical-align: -0.1cqw; margin-right: 0.5cqw; }
-  #mixlcd .dot.on { background: #1f2a14; }
-  /* la ayuda nunca sale de su franja: si no cabe, la letra se achica (fitHelp) */
   #mixlcd .help { font-weight: 600; font-size: 1.2cqw; line-height: 1.22; min-height: 0; overflow: hidden; display: flex; align-items: center; }
-  #mixlcd .last { font-size: 1.1cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; display: flex; justify-content: space-between; text-transform: uppercase; }
+  #mixlcd .last { font-size: 1.05cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* --- teclas con nombre --- */
-  .fk .sub { display: block; font-size: 0.7em; font-weight: 600; opacity: 0.75; font-style: normal; margin-top: 0.25em; }
-  .fk.page.on { background: var(--accent); color: #fff; }
-  .fk.wide { font-size: max(7px, 1.05cqw); }
-
-  /* --- las tiras: columnas que se ordenan solas, como en MESA 101 --- */
+  /* ---- las tiras ---- */
   #tiras { position: absolute; display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.55cqw; padding: 0.55cqw; box-sizing: border-box; z-index: 1; }
-  .tira { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 0.45cqw; min-height: 0;
-    padding: 0.55cqw 0.5cqw 0.6cqw; border-radius: 0.6cqw; background: rgba(255,255,255,.04); }
-  .tira.sel { background: rgba(255,255,255,.085); box-shadow: inset 0 0 0 0.12cqw rgba(255,255,255,.2); }
+  .tira { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 0.42cqw; min-height: 0;
+    padding: 0.5cqw 0.5cqw 0.55cqw; border-radius: 0.6cqw; background: rgba(255,255,255,.32); box-shadow: inset 0 0 0 0.08cqw rgba(36,44,64,.12); }
+  .tira.sel { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 0.14cqw var(--qy-azul); }
   .tira .fl { position: static; transform: none; pointer-events: auto; }
   .tira .ring { position: relative; transform: none; }
-  .tira-cab { display: flex; align-items: baseline; gap: 0.6cqw; }
-  .tira-num { font-size: 2.3cqw !important; line-height: 1 !important; }
-  .tira-canal { font-style: normal !important; font-weight: 700 !important; font-size: 0.82cqw !important; letter-spacing: 0.12em; opacity: 0.65; }
-  .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.72cqw !important; letter-spacing: 0.16em; opacity: 0.55; }
-  .grp::after { content: ""; flex: 1; height: 0.08cqw; background: currentColor; opacity: 0.6; }
-  .perillas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35cqw 0.3cqw; }
-  .perilla { display: flex; flex-direction: column; align-items: center; gap: 0.25cqw; }
-  .mk { width: 2.7cqw; height: 2.7cqw; cursor: ns-resize; touch-action: none; }
-  .mk::after { content: ""; position: absolute; left: 50%; top: 9%; width: 0.22cqw; height: 34%; background: currentColor;
-    border-radius: 0.2cqw; transform-origin: 50% 120%; transform: translateX(-50%) rotate(var(--a, 0deg)); color: #e8e9eb; }
-  .mk::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; background: rgba(0,0,0,.25); }
-  .mk:hover, .mk:focus-visible { box-shadow: 0 0 0 0.15cqw var(--accent); outline: none; }
-  .p-nom { font-size: 0.85cqw !important; line-height: 1 !important; }
-  .val { font: 500 0.95cqw/1 ui-monospace, Menlo, Consolas, monospace !important; font-style: normal !important; font-variant-numeric: tabular-nums; }
-  .fila-pan { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 0.3cqw; }
   .tira .fk { position: relative; transform: none; }
-  .tira .fk.mute { height: 3cqw; font-size: 0.95cqw; }
-  .fk.mute.on { background: linear-gradient(#e0574b, #b8332a); color: #fff; }
-  .tira.muda .perilla, .tira.muda .fader { opacity: 0.45; }
-  /* el fader: escala a la izquierda, pista con tapa, valor abajo */
+  .tira-cab { display: flex; align-items: baseline; gap: 0.5cqw; min-height: 2.3cqw; }
+  .tira-num { font-size: 2.2cqw !important; line-height: 1 !important; }
+  .tira-rol { font-style: normal !important; font-weight: 700 !important; font-size: 0.78cqw !important; letter-spacing: 0.1em; opacity: 0.7; }
+  .voz { display: flex; align-items: center; justify-content: space-between; gap: 0.3cqw; width: 100%; box-sizing: border-box;
+    padding: 0.35cqw 0.5cqw; border-radius: 0.3cqw; border: 0.08cqw solid #1b2238; background: var(--qy-azul-marco); color: #e9edf8;
+    font: 600 0.88cqw/1 ui-monospace, Menlo, monospace; cursor: pointer; text-align: left; }
+  .voz:hover, .voz:focus-visible { background: #3f4f7c; outline: none; }
+  .voz span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.7cqw !important; letter-spacing: 0.16em; opacity: 0.6; }
+  .grp::after { content: ""; flex: 1; height: 0.08cqw; background: currentColor; opacity: 0.6; }
+  .perillas { display: grid; gap: 0.25cqw; }
+  .perillas.tres { grid-template-columns: repeat(3, 1fr); }
+  .perillas.dos { grid-template-columns: repeat(2, 1fr); }
+  .perilla { display: flex; flex-direction: column; align-items: center; gap: 0.2cqw; cursor: ns-resize; touch-action: none; border-radius: 0.4cqw; padding: 0.1cqw 0; outline: none; }
+  .perilla:hover { background: rgba(73,100,150,.12); }
+  .perilla:focus-visible { box-shadow: inset 0 0 0 0.15cqw var(--qy-azul); }
+  /* la perilla: cuerpo negro, aguja blanca, arco azul con el valor */
+  .mk { width: 2.5cqw; height: 2.5cqw; border: 0 !important; border-radius: 50%;
+    background: conic-gradient(from -135deg, var(--qy-azul) 0 calc(var(--v, 0) * 270deg), rgba(36,44,64,.18) 0 270deg, transparent 0) !important; }
+  .mk::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5b6170, #1d2029 70%); box-shadow: 0 0.1cqw 0.2cqw rgba(0,0,0,.5); }
+  .mk::after { content: ""; position: absolute; left: 50%; top: 18%; width: 0.3cqw; height: 32%; background: #fff; border-radius: 0.2cqw;
+    transform-origin: 50% 100%; transform: translateX(-50%) rotate(var(--a, 0deg)); }
+  .mk.centro { box-shadow: 0 -0.95cqw 0 -0.82cqw var(--qy-tinta); }   /* la marca de las 12 en punto del paneo */
+  .p-nom { font-size: 0.78cqw !important; line-height: 1 !important; }
+  .val { font: 500 0.88cqw/1 ui-monospace, Menlo, Consolas, monospace !important; font-style: normal !important; font-variant-numeric: tabular-nums; }
+  .tira.callada .perilla, .tira.callada .fader, .tira.callada .voz { opacity: 0.45; }
+  /* el botón QY: encendido = el QY100 suena en este canal */
+  .fk.qy { height: 2.7cqw; flex-direction: row; gap: 0.5cqw; font-size: 0.95cqw; font-style: normal; }
+  .fk.qy i { width: 0.8cqw; height: 0.8cqw; border-radius: 50%; background: #5a6078; box-shadow: inset 0 0.08cqw 0.1cqw rgba(0,0,0,.5); }
+  .fk.qy.on i { background: #48f08a; box-shadow: 0 0 0.6cqw #48f08a; }
+  .fk.qy .sub { display: inline; margin: 0; font-weight: 600; font-size: 0.75cqw; opacity: 0.8; }
+  .fk.vol0.on { background: linear-gradient(#d9574b, var(--qy-rojo)); color: #fff; border-color: #7c2522; }
+  /* el fader */
   .fader { flex: 1; min-height: 0; display: grid; grid-template-columns: 2.2cqw 1fr; grid-template-rows: 1fr auto; touch-action: none; }
   .fader-escala { position: relative; margin: 0.65cqw 0; }
-  .fader-escala span { position: absolute; right: 0.4cqw; transform: translateY(-50%); font: 500 0.72cqw/1 ui-monospace, Menlo, monospace; color: currentColor; opacity: 0.6; }
-  .fader-escala span.def { opacity: 1; }
+  .fader-escala span { position: absolute; right: 0.4cqw; transform: translateY(-50%); font: 500 0.7cqw/1 ui-monospace, Menlo, monospace; color: var(--qy-tenue); }
+  .fader-escala span.def { color: var(--qy-tinta); font-weight: 700; }
   .fader-escala span::after { content: ""; position: absolute; left: calc(100% + 0.25cqw); top: 50%; width: 0.6cqw; height: 0.08cqw; background: currentColor; }
-  .fader-pista { position: relative; cursor: ns-resize; margin: 0.65cqw 0; }
+  .fader-pista { position: relative; cursor: pointer; margin: 0.65cqw 0; outline: none; }
   .fader-pista::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 0.55cqw; margin-left: -0.275cqw; border-radius: 0.3cqw;
-    background: var(--vt, linear-gradient(90deg, #08090a, #26282c)); box-shadow: var(--vtsh, inset 0 0 4px #000, 0 1px 0 rgba(255,255,255,.22)); }
-  .fader-tapa { position: absolute; left: 50%; width: 2.6cqw; height: 1.35cqw; margin: -0.675cqw 0 0 -1.3cqw; border-radius: 0.2cqw; border: 1px solid var(--vthbd, #111);
-    background: repeating-linear-gradient(0deg, transparent 0 0.4cqw, var(--ribs, rgba(0,0,0,.35)) 0.4cqw 0.47cqw), var(--vth, linear-gradient(90deg, #b9bcc3, #f2f3f5 45%, #9da0a8));
-    box-shadow: 0 0.15cqw 0.3cqw rgba(0,0,0,.6); }
-  .fader-pista:hover .fader-tapa, .fader-pista:focus-visible .fader-tapa { box-shadow: 0 0 0 0.15cqw var(--accent), 0 0.15cqw 0.3cqw rgba(0,0,0,.6); }
-  .fader-pista:focus-visible { outline: none; }
-  .fader-valor { grid-column: 2; justify-self: center; padding: 0.2cqw 0.5cqw; border-radius: 0.25cqw; background: rgba(0,0,0,.35);
-    font: 500 0.95cqw/1 ui-monospace, Menlo, monospace; color: #e8e9eb; font-variant-numeric: tabular-nums; }
-  .cinta-zona { height: 2.6cqw; display: flex; align-items: center; justify-content: center; }
+    background: linear-gradient(90deg, #1a1d26, #3a3f4d); box-shadow: inset 0 0 0.2cqw #000, 0 0.06cqw 0 rgba(255,255,255,.6); }
+  .fader-guia { position: absolute; left: 22%; right: 22%; height: 0.1cqw; background: var(--qy-tinta); opacity: 0.55; }
+  .fader-tapa { position: absolute; left: 50%; width: 2.7cqw; height: 1.35cqw; margin: -0.675cqw 0 0 -1.35cqw; border-radius: 0.2cqw; border: 1px solid #3c4152; cursor: ns-resize;
+    background: repeating-linear-gradient(0deg, transparent 0 0.4cqw, rgba(0,0,0,.3) 0.4cqw 0.47cqw), linear-gradient(90deg, #b9bcc3, #f2f3f5 45%, #9da0a8);
+    box-shadow: 0 0.15cqw 0.3cqw rgba(0,0,0,.45); }
+  .fader-pista:hover .fader-tapa, .fader-pista:focus-visible .fader-tapa { box-shadow: 0 0 0 0.15cqw var(--qy-azul), 0 0.15cqw 0.3cqw rgba(0,0,0,.45); }
+  .fader-valor { grid-column: 2; justify-self: center; padding: 0.2cqw 0.5cqw; border-radius: 0.25cqw; background: var(--qy-azul-marco);
+    font: 500 0.9cqw/1 ui-monospace, Menlo, monospace; color: #e9edf8; font-variant-numeric: tabular-nums; }
+  /* la cinta con rotulador, como en MESA 101: un campo de texto con forma de cinta */
+  .cinta-zona { height: 2.5cqw; display: flex; align-items: center; justify-content: center; }
+  .cinta { box-sizing: border-box; width: 100%; height: 2.25cqw; padding: 0 0.5cqw; border: 0; outline: none; text-align: center; text-transform: uppercase;
+    font: 400 1.2cqw/1 'Permanent Marker', 'Marker Felt', cursive; color: #16130f; transform: rotate(var(--giro, -1deg)); cursor: text;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,.04) 0 1px, transparent 1px 3px), #efece4;
+    clip-path: polygon(0 8%, 2% 0, 4% 9%, 6% 2%, 94% 0, 96% 8%, 98% 1%, 100% 7%, 99% 50%, 100% 94%, 98% 100%, 96% 93%, 94% 100%, 6% 98%, 4% 92%, 2% 100%, 0 93%, 1% 50%);
+    filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,.4)); }
+  .cinta:hover { background-color: #f7f5ee; }
+  .cinta:focus { background-color: #fffdf6; box-shadow: inset 0 0 0 0.15cqw var(--qy-azul); }
+  .cinta::placeholder { font: 600 0.72cqw/1 system-ui, sans-serif; letter-spacing: 0.12em; color: #5d626c; }
+  .cinta:placeholder-shown { transform: none; background: rgba(255,255,255,.25); clip-path: none; filter: none; outline: 0.1cqw dashed #6b7078; outline-offset: -0.1cqw; border-radius: 0.3cqw; }
 
-  /* la cinta con rotulador, como en MESA 101 */
-  .cinta { position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; isolation: isolate;
-    max-width: 100%; min-width: 60%; height: 2.3cqw; padding: 0 0.7cqw; transform: rotate(var(--giro, -1deg)); white-space: nowrap; overflow: hidden;
-    font: 400 1.25cqw/1 'Permanent Marker', 'Marker Felt', cursive; color: #16130f; cursor: text; outline: none;
-    filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,.5)) drop-shadow(2px 3px 3px rgba(0,0,0,.4)); }
-  .cinta::before { content: ""; position: absolute; inset: 0; z-index: -1;
-    background: repeating-linear-gradient(0deg, rgba(0,0,0,.055) 0 1px, transparent 1px 3px),
-      repeating-linear-gradient(90deg, rgba(0,0,0,.045) 0 1px, transparent 1px 3px), #efece4;
-    clip-path: polygon(0 8%, 2% 0, 4% 9%, 6% 2%, 94% 0, 96% 8%, 98% 1%, 100% 7%, 99% 50%, 100% 94%, 98% 100%, 96% 93%, 94% 100%, 6% 98%, 4% 92%, 2% 100%, 0 93%, 1% 50%); }
-  .cinta:focus::before { outline: 0.15cqw solid var(--accent); outline-offset: -0.15cqw; }
-  .cinta.vacia { filter: none; transform: none; font: 600 0.75cqw/1 system-ui, sans-serif; letter-spacing: 0.12em;
-    color: #9aa0a8; border: 0.1cqw dashed #6b7078; border-radius: 0.3cqw; }
-  .cinta.vacia::before { display: none; }
-  .cinta.vacia:empty::after { content: "PEGAR CINTA"; }
+  /* ---- el selector de voces: tapa la franja de arriba mientras está abierto ---- */
+  #voces { position: absolute; z-index: 5; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 0.6cqw; padding: 0.8cqw 1cqw; box-sizing: border-box;
+    border-radius: 0.8cqw; background: var(--qy-azul-marco); color: #e9edf8; box-shadow: 0 0.6cqw 2cqw rgba(0,0,0,.45); }
+  #voces[hidden] { display: none; }
+  #voces .cab { display: flex; align-items: center; gap: 1cqw; font: 700 1.1cqw/1 system-ui, sans-serif; }
+  #voces .cab .grow { flex: 1; }
+  #voces .cab small { font-weight: 500; opacity: 0.75; font-size: 0.85cqw; }
+  #voces .cols { display: grid; grid-template-columns: 15cqw 1fr; gap: 0.8cqw; min-height: 0; }
+  #voces .lista { overflow-y: auto; min-height: 0; display: flex; flex-direction: column; gap: 0.15cqw; padding-right: 0.3cqw; }
+  #voces .lista.voces-l { display: grid; grid-template-columns: repeat(4, 1fr); align-content: start; }
+  #voces button.it { border: 0; text-align: left; padding: 0.35cqw 0.6cqw; border-radius: 0.3cqw; background: transparent; color: inherit;
+    font: 500 0.92cqw/1.15 ui-monospace, Menlo, monospace; cursor: pointer; }
+  #voces button.it:hover, #voces button.it:focus-visible { background: rgba(255,255,255,.12); outline: none; }
+  #voces button.it.on { background: #bad18f; color: #1f2a14; font-weight: 700; }
+  #voces .cerrar { border: 0; border-radius: 0.3cqw; padding: 0.3cqw 0.8cqw; background: rgba(255,255,255,.15); color: #fff; font: 700 0.9cqw/1 system-ui, sans-serif; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -116,69 +167,81 @@
   </div>
 </main>
 <script>
+(async () => {
   // ---- colocar, como en el emulador: centros y tamaños en unidades de la carcasa (1700 x 1000) ----
   const FW = 1700, FH = 1000;
   const face = document.getElementById('face');
-  const place = (el, cx, cy, w, h) => {
-    Object.assign(el.style, { left: cx / FW * 100 + '%', top: cy / FH * 100 + '%', width: w / FW * 100 + '%',
-      height: h / FH * 100 + '%', transform: el.style.transform || 'translate(-50%, -50%)' });
-    face.appendChild(el);
-    return el;
+  const place = (e, cx, cy, w, h) => {
+    Object.assign(e.style, { left: cx / FW * 100 + '%', top: cy / FH * 100 + '%', width: w / FW * 100 + '%', height: h / FH * 100 + '%', transform: 'translate(-50%, -50%)' });
+    face.appendChild(e);
+    return e;
   };
-  const deco = (cls, cx, cy, w, h) => place(Object.assign(document.createElement('div'), { className: cls }), cx, cy, w, h);
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+  const deco = (cls, cx, cy, w, h) => place(el('div', cls), cx, cy, w, h);
   const text = (t, cx, cy, size, cls = '') => {
-    const s = document.createElement('span');
-    s.className = 'fl ' + cls; s.innerHTML = t;
+    const s = el('span', 'fl ' + cls, t);
     s.style.left = cx / FW * 100 + '%'; s.style.top = cy / FH * 100 + '%';
     if (size) s.style.fontSize = 'max(5px, ' + size / FW * 100 + 'cqw)';
     face.appendChild(s);
     return s;
   };
-  // La ayuda de cada control va en la pantalla verde mientras el mouse está encima.
-  const explain = (el, msg) => {
-    el.addEventListener('pointerenter', () => setHelp(typeof msg === 'function' ? msg() : msg));
-    el.addEventListener('pointerleave', () => setHelp(''));
-    return el;
+  // La ayuda de cada control va a la pantalla mientras el mouse o el foco está encima.
+  let helpTimer = 0;
+  const explain = (e, msg) => {
+    const show = () => { clearTimeout(helpTimer); helpTimer = setTimeout(() => setHelp(typeof msg === 'function' ? msg() : msg), 80); };
+    const hide = () => { clearTimeout(helpTimer); helpTimer = setTimeout(() => setHelp(''), 120); };
+    e.addEventListener('pointerenter', show); e.addEventListener('pointerleave', hide);
+    e.addEventListener('focus', show); e.addEventListener('blur', hide);
+    return e;
   };
+  const flashKey = (b) => { b.classList.add('down'); setTimeout(() => b.classList.remove('down'), 120); };
   const key = (label, cx, cy, w, h, cls, onClick, help, shortcut) => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'fk ' + (cls || '');
-    b.innerHTML = label + (shortcut ? `<span class="kb">${shortcut}</span>` : '');
+    const b = el('button', 'fk ' + (cls || ''), label + (shortcut ? `<span class="kb">${shortcut}</span>` : ''));
+    b.type = 'button';
     if (onClick) b.addEventListener('click', onClick);
     if (help) explain(b, help);
     return place(b, cx, cy, w, h);
   };
 
-  // ---- datos de muestra (nada de esto habla con un aparato) ----
+  // ---- datos (de muestra, salvo las voces, que son las del QY100) ----
+  let VOCES = { familias: [], voces: [] };
+  try { VOCES = await (await fetch('voces.json')).json(); } catch { /* sin voces, la maqueta sigue */ }
+  const V = VOCES.voces;                      // [familia, nombre, msb, lsb, pc]
+  const vozPorNombre = (txt) => Math.max(0, V.findIndex((v) => v[1].endsWith(txt)));
   const PAGES = [
-    { label: 'CANCIÓN 1–8', sub: 'canales 1–8', parts: [0, 1, 2, 3, 4, 5, 6, 7], lcd: 'Canción 1–8' },
-    { label: 'CANCIÓN 9–16', sub: 'canales 9–16', parts: [8, 9, 10, 11, 12, 13, 14, 15], lcd: 'Canción 9–16' },
-    { label: 'PATRÓN', sub: 'pistas D1–C4', parts: [16, 17, 18, 19, 20, 21, 22, 23], lcd: 'Patrón D1–C4' },
+    { label: 'CANCIÓN 1–8', sub: 'canales 1–8', parts: [0, 1, 2, 3, 4, 5, 6, 7], lcd: 'CANCIÓN 1–8' },
+    { label: 'CANCIÓN 9–16', sub: 'canales 9–16', parts: [8, 9, 10, 11, 12, 13, 14, 15], lcd: 'CANCIÓN 9–16' },
+    { label: 'PATRÓN', sub: 'pistas D1–C4', parts: [16, 17, 18, 19, 20, 21, 22, 23], lcd: 'PATRÓN' },
   ];
   const PATT = ['D1', 'D2', 'PC', 'BA', 'C1', 'C2', 'C3', 'C4'];
-  const SKINS = [['dark', 'OSCURA'], ['aero', 'AERO'], ['kawaii', 'KAWAII'], ['terminal', 'TERMINAL'], ['vintage', 'VINTAGE'], ['synthwave', 'SYNTHWAVE']];
+  const ROL = ['BATERÍA 1', 'BATERÍA 2', 'PERCUSIÓN', 'BAJO', 'ACORDE 1', 'ACORDE 2', 'ACORDE 3', 'ACORDE 4'];
   const DEFAULTS = { pan: 64, rev: 40, cho: 0, vari: 0, dry: 127, vol: 100 };
+  const CON_SINTE = [1, 3, 4, 5, 6];         // canales del rig con un sinte externo
+  const kit = vozPorNombre('Standard Kit'), piano = vozPorNombre('GrandPno'), bajo = vozPorNombre('AcoBass');
   const state = Array.from({ length: 24 }, (_, p) => ({
     vol: [100, 92, 110, 96, 88, 104, 80, 74][p % 8], pan: [64, 50, 64, 64, 78, 40, 64, 90][p % 8],
-    rev: [20, 40, 10, 30, 64, 70, 40, 52][p % 8], cho: [0, 0, 20, 0, 40, 30, 0, 10][p % 8],
-    vari: 0, dry: 127, mute: [0, 2, 3, 4, 5].includes(p),
+    rev: [20, 40, 10, 30, 64, 70, 40, 52][p % 8], cho: [0, 0, 20, 0, 40, 30, 0, 10][p % 8], vari: 0, dry: 127,
+    qy: p >= 16 || !CON_SINTE.includes(p + 1),  // canción: ¿suena el QY100 en este canal?
+    vol0: false,                                 // patrón: VOL 0 puesto
+    voz: p === 9 ? kit : p < 16 ? piano : [kit, kit, kit, bajo, piano, piano, piano, piano][p - 16],
   }));
-  let page = 0, skin = 0, sel = 0, help = '', last = 'Maqueta: no manda MIDI. Todo lo que ves es de muestra.';
+  let page = 0, sel = 0, help = '', primera = true;
+  let last = 'Maqueta: no manda MIDI. Lo que ves es de muestra, salvo los nombres de las voces.';
 
-  // las cintas: lo único que la maqueta guarda
-  const CINTAS_KEY = 'qy100-mixer.cintas';
+  // las cintas, por canal MIDI: lo único que la maqueta guarda
+  const CINTAS_KEY = 'qy100-mixer.cintas-por-canal';
   const GIROS = [-1.6, 1.1, -0.7, 1.8, -1.2, 0.6, -1.9, 1.3];
   let cintas = null;
   try { cintas = JSON.parse(localStorage.getItem(CINTAS_KEY)); } catch { /* sin almacenamiento */ }
-  if (!cintas) cintas = { 0: 'DRUMBRUTE', 2: 'RIDDIM', 3: 'MINITAUR', 4: 'VOLCA KEYS', 5: 'LEMONDROP',
-    16: 'DRUMBRUTE', 18: 'RIDDIM', 19: 'MINITAUR', 20: 'VOLCA KEYS', 21: 'LEMONDROP' };
+  if (!cintas) cintas = { 1: 'DRUMBRUTE', 3: 'RIDDIM', 4: 'MINITAUR', 5: 'VOLCA KEYS', 6: 'LEMONDROP' };
   const saveCintas = () => { try { localStorage.setItem(CINTAS_KEY, JSON.stringify(cintas)); } catch { /* no se guarda */ } };
-  const who = (p) => cintas[p] || 'QY100';
   const channelOf = (p) => (p < 16 ? p + 1 : p - 15);   // pistas de patrón: PATT OUT CH 1~8
+  const sinte = (p) => cintas[channelOf(p)] || '';
   const partName = (p) => (p < 16 ? 'parte ' + (p + 1) : 'pista ' + PATT[p - 16]);
   const panText = (v) => (v === 0 ? 'RND' : v === 64 ? 'C' : v < 64 ? 'L' + (64 - v) : 'R' + (v - 64));
+  const vozTxt = (i) => (V[i] ? V[i][1] : '—');
 
-  // ---- el cuerpo moldeado, como en el emulador ----
+  // ---- el cuerpo moldeado ----
   deco('cap l', 22, 500, 44, 1000);
   deco('cap r', 1678, 500, 44, 1000);
   deco('lip', 850, 975, 1700, 50);
@@ -186,63 +249,61 @@
   deco('well', 850, 626, 1612, 668);
   place(document.getElementById('bezel'), 850, 112, 1000, 196);
   place(document.getElementById('lcdwin'), 850, 104, 950, 150);
-  text('<b>QY</b> MIXER', 175, 48, 34);
+  text('<b>QY</b> MIXER', 160, 44, 34);
+  text('<span class="chapa">MAQUETA</span>', 160, 84, 0);
   text('<span class="xg">QY100</span>', 1280, 196, 24);
-  text('maqueta', 430, 196, 18);
 
-  // ---- arriba a la izquierda: dos luces con su nombre ----
-  const ledOut = deco('fled green on', 100, 115, 28, 28);
-  text('MIDI', 148, 115, 21);
-  const ledSend = deco('fled', 100, 165, 28, 28);
-  text('ENVÍO', 156, 165, 21);
-  explain(ledOut, 'Luz MIDI: verde = hay salida hacia el QY100 (L6max MIDI I/O).');
-  explain(ledSend, 'Luz ENVÍO: parpadea cada vez que sale algo hacia el QY100.');
+  // ---- luces: puerto y envío ----
+  const ledPuerto = deco('fled ambar', 92, 140, 26, 26);
+  text('PUERTO', 152, 140, 19);
+  const ledEnvio = deco('fled green', 92, 184, 26, 26);
+  text('ENVÍO', 146, 184, 19);
+  explain(ledPuerto, 'Luz PUERTO: ámbar = maqueta o sin salida MIDI; verde = hay salida hacia el QY100.');
+  explain(ledEnvio, 'Luz ENVÍO: parpadea cada vez que algo sale hacia el QY100.');
+  const pulseSend = () => { ledEnvio.classList.add('on'); clearTimeout(pulseSend.t); pulseSend.t = setTimeout(() => ledEnvio.classList.remove('on'), 160); };
 
-  // ---- arriba a la derecha: ENVIAR TODO, grande ----
+  // ---- ENVIAR TODO ----
   deco('ring', 1530, 112, 205, 205);
-  key('ENVIAR<br>TODO', 1530, 112, 150, 150, 'round', () => sendAll(),
-    'ENVIAR TODO: manda las 24 tiras al QY100. Úsalo al prenderlo o después de cambiar de patrón.', 'E');
+  const sendKey = key('ENVIAR<br>TODO<span class="sub">24 tiras</span>', 1530, 112, 150, 150, 'round azul', () => sendAll(),
+    'ENVIAR TODO: manda las 24 tiras al QY100 (voz, volumen, efectos y el botón QY). Úsalo al prenderlo o después de cambiar de patrón.', 'E');
 
-  // ---- segunda fila: páginas a la izquierda, acciones a la derecha ----
-  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 210 + i * 230, 245, 210, 54, 'page wide',
-    () => { page = i; sel = 0; render(); },
+  // ---- páginas (juntas, como un selector) y acciones ----
+  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 185 + i * 206, 245, 204, 54, 'page azul wide',
+    () => { page = i; sel = 0; render(); flashKey(pageKeys[i]); },
     i < 2 ? `${p.label}: las partes del modo canción, una por canal MIDI (${p.sub}).`
-      : 'PATRÓN: las 8 pistas del modo patrón (D1–C4). Salen por los canales 1–8 con PATT OUT CH 1~8.', String(i + 1)));
-  key('LEER DEL QY<span class="sub">esta página</span>', 1090, 245, 200, 54, 'wide', () => say('Leer: necesita el cable de vuelta (MIDI IN). En la maqueta no hace nada.'),
+      : 'PATRÓN: las 8 pistas del modo patrón (batería, percusión, bajo y 4 acordes). Salen por los canales 1–8.', String(i + 1)));
+  const readKey = key('LEER DEL QY<span class="sub">esta página</span>', 1110, 245, 200, 54, 'wide',
+    () => say('Leer: trae los valores reales del QY100. Necesita el cable de vuelta (MIDI IN); en la maqueta no hace nada.'),
     'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página. Necesita el cable de vuelta (MIDI IN).', 'L');
-  key('PUERTO MIDI<span class="sub">L6max MIDI I/O</span>', 1310, 245, 220, 54, 'wide', () => say('Puerto: aquí se elegirá la salida hacia el QY100.'),
-    'PUERTO MIDI: la salida que llega al QY100. Hoy, la Zoom (L6max MIDI I/O).');
-  const skinKey = key('PIEL<span class="sub">OSCURA</span>', 1530, 245, 180, 54, 'wide', () => {
-    skin = (skin + 1) % SKINS.length;
-    if (skin) document.documentElement.dataset.skin = SKINS[skin][0]; else delete document.documentElement.dataset.skin;
-    skinKey.querySelector('.sub').textContent = SKINS[skin][1];
-    say('Piel: ' + SKINS[skin][1]);
-  }, 'PIEL: cambia el aspecto. No toca nada del QY100.', 'P');
+  key('PUERTO MIDI ▾<span class="sub">ninguno (maqueta)</span>', 1350, 245, 250, 54, 'oscura wide',
+    () => say('Puerto: aquí se elegirá la salida hacia el QY100 (hoy, L6max MIDI I/O).'),
+    'PUERTO MIDI: elige la salida que llega al QY100. En el estudio, la Zoom (L6max MIDI I/O).');
 
-  // ---- las 8 tiras: columnas dentro del hueco del teclado ----
-  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+  // ---- las tiras ----
   const tirasBox = place(el('div'), 850, 626, 1612, 668);
   tirasBox.id = 'tiras';
   const strips = [];
   const SCALE = [127, 100, 64, 32, 0];
 
-  // una perilla: arrastre relativo (Shift = fino), rueda, flechas, doble clic = de fábrica
-  function perilla(i, label, field, helpText, fmt = (v) => String(v)) {
-    const box = el('div', 'perilla');
-    const k = el('div', 'ring mk'); k.tabIndex = 0; k.setAttribute('role', 'slider'); k.setAttribute('aria-label', label);
+  function perilla(i, label, field, helpText, fmt = (v) => String(v), opts = {}) {
+    const box = el('div', 'perilla'); box.tabIndex = 0; box.setAttribute('role', 'slider'); box.setAttribute('aria-label', label);
+    const k = el('div', 'ring mk' + (opts.centro ? ' centro' : ''));
     const val = el('span', 'fl val');
     box.append(k, el('span', 'fl p-nom', label), val);
+    const min = opts.min ?? 0;
     const P = () => PAGES[page].parts[i];
-    const paint = () => { const v = state[P()][field]; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); val.textContent = fmt(v); k.setAttribute('aria-valuetext', fmt(v)); };
-    const set = (v) => { state[P()][field] = Math.max(0, Math.min(127, Math.round(v))); sel = i; paint(); paintSel(); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); };
-    let y0 = 0, v0 = 0;
-    k.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = state[P()][field]; k.setPointerCapture(e.pointerId); });
-    k.addEventListener('pointermove', (e) => { if (k.hasPointerCapture(e.pointerId)) set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); });
-    k.addEventListener('wheel', (e) => { e.preventDefault(); set(state[P()][field] - Math.sign(e.deltaY)); }, { passive: false });
-    k.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 }[e.key];
+    const paint = () => { const v = state[P()][field]; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); k.style.setProperty('--v', v / 127); val.textContent = fmt(v); box.setAttribute('aria-valuetext', fmt(v)); };
+    const set = (v) => { state[P()][field] = Math.max(min, Math.min(127, Math.round(v))); sel = i; paint(); paintSel(); pulseSend(); setHelp(`${helpText(P())} → ${fmt(state[P()][field])}`); };
+    const done = () => say(`${label} de la ${partName(P())}: ${fmt(state[P()][field])}.`);
+    let y0 = 0, v0 = 0, moved = false;
+    box.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = state[P()][field]; moved = false; box.setPointerCapture(e.pointerId); });
+    box.addEventListener('pointermove', (e) => { if (box.hasPointerCapture(e.pointerId)) { moved = true; set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); } });
+    box.addEventListener('pointerup', () => { if (moved) done(); });
+    box.addEventListener('wheel', (e) => { e.preventDefault(); set(state[P()][field] - Math.sign(e.deltaY)); }, { passive: false });
+    box.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 }[e.key];
       if (d) { e.preventDefault(); e.stopPropagation(); set(state[P()][field] + d); } });
-    k.addEventListener('dblclick', () => { set(DEFAULTS[field]); say(`${label} de la ${partName(P())} a ${fmt(DEFAULTS[field])} (de fábrica).`); });
-    explain(k, () => helpText(P()) + '. Arrastra arriba o abajo (Shift = fino), rueda o flechas. Doble clic: ' + fmt(DEFAULTS[field]) + '.');
+    box.addEventListener('dblclick', () => { set(DEFAULTS[field]); say(`${label} de la ${partName(P())} a ${fmt(DEFAULTS[field])} (de fábrica).`); });
+    explain(box, () => `${helpText(P())}. Arrastra arriba o abajo (Shift = fino), rueda o flechas. Doble clic: ${fmt(DEFAULTS[field])}.`);
     return { box, paint };
   }
 
@@ -251,108 +312,162 @@
     const s = {};
     const tira = el('article', 'tira');
     tira.addEventListener('pointerdown', () => { if (sel !== i) { sel = i; paintSel(); } });
-    // cabecera
+    // cabecera: número y, en patrón, el rol de la pista
     const cab = el('div', 'tira-cab');
-    s.num = el('span', 'fl tira-num'); s.canal = el('span', 'fl tira-canal');
-    cab.append(s.num, s.canal);
-    // envíos
-    const envios = el('div', 'perillas');
+    s.num = el('span', 'fl tira-num'); s.rol = el('span', 'fl tira-rol');
+    cab.append(s.num, s.rol);
+    explain(cab, () => (P() < 16 ? `Parte ${P() + 1} del modo canción: recibe por el canal MIDI ${P() + 1}.`
+      : `Pista ${PATT[P() - 16]} del patrón (${ROL[P() - 16].toLowerCase()}): sale por el canal ${channelOf(P())}.`));
+    // la voz
+    s.voz = el('button', 'voz'); s.voz.type = 'button';
+    s.voz.addEventListener('click', () => { sel = i; paintSel(); abrirVoces(i); });
+    explain(s.voz, () => `VOZ de la ${partName(P())}: ${vozTxt(state[P()].voz)}. Clic para elegir otra entre las 530 del QY100.`);
+    // efectos
+    const efectos = el('div', 'perillas tres');
     const ks = [
       perilla(i, 'REV', 'rev', (p) => `Envío a REVERB de la ${partName(p)}`),
       perilla(i, 'CHO', 'cho', (p) => `Envío a CHORUS de la ${partName(p)}`),
       perilla(i, 'VAR', 'vari', (p) => `Envío a VARIACIÓN de la ${partName(p)}`),
-      perilla(i, 'DRY', 'dry', (p) => `DRY: la señal sin efectos de la ${partName(p)}`),
     ];
-    ks.forEach((k) => envios.append(k.box));
-    // paneo y mute
-    const filaPan = el('div', 'fila-pan');
-    const pan = perilla(i, 'PAN', 'pan', (p) => `PANEO de la ${partName(p)} (C = centro, RND = al azar)`, panText);
-    s.mute = el('button', 'fk sm mute', 'MUTE'); s.mute.type = 'button';
-    s.mute.addEventListener('click', () => {
-      const st = state[P()]; st.mute = !st.mute; sel = i; render();
-      say(P() < 16
-        ? (st.mute ? `MUTE canal ${channelOf(P())}: el QY100 ya no lo toca; ${who(P())} sigue sonando.` : `Canal ${channelOf(P())} de vuelta en el QY100.`)
-        : (st.mute ? `MUTE ${PATT[P() - 16]}: volumen 0.` : `${PATT[P() - 16]}: volumen de vuelta.`));
+    ks.forEach((k) => efectos.append(k.box));
+    // paneo y seco
+    const fila = el('div', 'perillas dos');
+    const pan = perilla(i, 'PAN', 'pan', (p) => `PANEO de la ${partName(p)} (C = centro)`, panText, { centro: true, min: 1 });
+    const dry = perilla(i, 'DRY', 'dry', (p) => `DRY: la señal sin efectos de la ${partName(p)}. No es un envío: en 0 no se oye nada directo`);
+    fila.append(pan.box, dry.box);
+    // el botón QY (canción) o VOL 0 (patrón)
+    s.qy = el('button', 'fk qy'); s.qy.type = 'button';
+    s.qy.addEventListener('click', () => {
+      const p = P(), st = state[p]; sel = i;
+      if (p < 16) { st.qy = !st.qy; say(st.qy ? `Canal ${channelOf(p)}: el QY100 vuelve a sonar.` : `Canal ${channelOf(p)}: el QY100 se calla; ${sinte(p) || 'el sinte'} sigue sonando.`); }
+      else { st.vol0 = !st.vol0; say(st.vol0 ? `${PATT[p - 16]}: volumen 0 (guardado: ${st.vol}).` : `${PATT[p - 16]}: volumen de vuelta a ${st.vol}.`); }
+      pulseSend(); render();
     });
-    explain(s.mute, () => (P() < 16
-      ? `MUTE: el QY100 deja de tocar lo que entra por el canal ${channelOf(P())}; ${who(P())} sigue sonando. Se pierde al apagar el QY100: ENVIAR TODO.`
-      : `MUTE: volumen 0 en la pista ${PATT[P() - 16]}. Ojo: el QY100 puede pasarlo como CC 7 y bajar también ${who(P())}.`));
-    filaPan.append(pan.box, s.mute);
-    // fader con escala
+    explain(s.qy, () => (P() < 16
+      ? `QY: encendido, el QY100 suena en el canal ${channelOf(P())}${sinte(P()) ? ' junto con ' + sinte(P()) : ''}. Apagado, suena solo ${sinte(P()) || 'el sinte externo'}. Se pierde al apagar el QY100: ENVIAR TODO.`
+      : `VOL 0: baja a 0 el volumen de la pista ${PATT[P() - 16]}. Ojo: el QY100 puede pasarlo como CC 7 y bajar también ${sinte(P()) || 'el sinte de ese canal'}.`));
+    // el fader
     const fader = el('div', 'fader');
     const escala = el('div', 'fader-escala');
     SCALE.forEach((v) => { const m = el('span', v === DEFAULTS.vol ? 'def' : '', String(v)); m.style.top = (100 - v / 127 * 100) + '%'; escala.append(m); });
     const pista = el('div', 'fader-pista'); pista.tabIndex = 0; pista.setAttribute('role', 'slider'); pista.setAttribute('aria-label', 'Volumen');
-    const tapa = el('div', 'fader-tapa'); pista.append(tapa);
+    const guia = el('div', 'fader-guia'); guia.style.top = (100 - DEFAULTS.vol / 127 * 100) + '%';
+    const tapa = el('div', 'fader-tapa'); pista.append(guia, tapa);
     s.vol = el('span', 'fader-valor');
     fader.append(escala, pista, s.vol);
-    const setVol = (v) => { state[P()].vol = Math.max(0, Math.min(127, Math.round(v))); sel = i; paintStrip(i); paintSel(); setHelp(`VOLUMEN de la ${partName(P())} → ${state[P()].vol}`); };
-    let fy0 = 0, fv0 = 0;
-    pista.addEventListener('pointerdown', (e) => { fy0 = e.clientY; fv0 = state[P()].vol; pista.setPointerCapture(e.pointerId); });
-    pista.addEventListener('pointermove', (e) => { if (!pista.hasPointerCapture(e.pointerId)) return;
+    const setVol = (v) => { const st = state[P()]; st.vol = Math.max(0, Math.min(127, Math.round(v))); st.vol0 = false; sel = i; paintStrip(i); paintSel(); pulseSend(); setHelp(`VOLUMEN de la ${partName(P())} → ${st.vol}`); };
+    let fy0 = 0, fv0 = 0, fmoved = false;
+    pista.addEventListener('pointerdown', (e) => {
+      if (e.target !== tapa) {                 // clic en la ranura: la tapa va ahí
+        const r = pista.getBoundingClientRect();
+        setVol((1 - (e.clientY - r.top) / r.height) * 127);
+      }
+      fy0 = e.clientY; fv0 = state[P()].vol; fmoved = e.target !== tapa; pista.setPointerCapture(e.pointerId);
+    });
+    pista.addEventListener('pointermove', (e) => { if (!pista.hasPointerCapture(e.pointerId)) return; fmoved = true;
       const h = pista.getBoundingClientRect().height || 1; setVol(fv0 + (fy0 - e.clientY) / h * 127 * (e.shiftKey ? 0.25 : 1)); });
+    pista.addEventListener('pointerup', () => { if (fmoved) say(`Volumen de la ${partName(P())}: ${state[P()].vol}.`); });
     pista.addEventListener('wheel', (e) => { e.preventDefault(); setVol(state[P()].vol - Math.sign(e.deltaY)); }, { passive: false });
     pista.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowDown: -1, PageUp: 10, PageDown: -10 }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); setVol(state[P()].vol + d); } });
-    pista.addEventListener('dblclick', () => { setVol(DEFAULTS.vol); say(`Volumen de la ${partName(P())} a 100 (de fábrica).`); });
-    explain(pista, () => `VOLUMEN de la ${partName(P())}, de 0 a 127. Arrastra la tapa (Shift = fino), rueda o flechas. Doble clic: 100.`);
+    pista.addEventListener('dblclick', () => { setVol(DEFAULTS.vol); say(`Volumen de la ${partName(P())} a 100 (de fábrica, la raya de la escala).`); });
+    explain(pista, () => `VOLUMEN de la ${partName(P())}, de 0 a 127. Arrastra la tapa o haz clic en la ranura (Shift = fino). Doble clic: 100, la raya.`);
     s.tapa = tapa;
-    // la cinta, a todo el ancho al pie
+    // la cinta: por canal MIDI
     const zona = el('div', 'cinta-zona');
-    const c = el('div', 'cinta'); c.contentEditable = 'plaintext-only'; c.spellcheck = false; c.setAttribute('role', 'textbox');
+    const c = el('input', 'cinta'); c.type = 'text'; c.maxLength = 12; c.placeholder = 'PEGAR CINTA'; c.spellcheck = false; c.autocomplete = 'off';
     c.style.setProperty('--giro', GIROS[i] + 'deg');
     zona.append(c);
-    const paintCinta = () => {
-      const empty = !c.textContent && document.activeElement !== c;
-      c.classList.toggle('vacia', empty);
-      c.style.fontSize = '';
-      if (empty) return;
-      for (let t = 1.3; t >= 0.6; t -= 0.05) { c.style.fontSize = t + 'cqw'; if (c.scrollWidth <= c.clientWidth) break; }
-    };
-    c.addEventListener('focus', () => { sel = i; paintSel(); paintCinta(); setHelp('Escribe el nombre del sinte de este canal (hasta 12 letras). Enter guarda, Esc cancela.'); });
-    c.addEventListener('input', () => { if (c.textContent.length > 12 || /\n/.test(c.textContent)) c.textContent = c.textContent.replace(/\n/g, ' ').slice(0, 12); paintCinta(); });
-    c.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); c.blur(); } if (e.key === 'Escape') { c.textContent = cintas[P()] || ''; c.blur(); } });
+    const fitCinta = () => { c.style.fontSize = ''; if (!c.value) return; for (let t = 1.2; t >= 0.6; t -= 0.05) { c.style.fontSize = t + 'cqw'; if (c.scrollWidth <= c.clientWidth) break; } };
+    c.addEventListener('focus', () => { sel = i; paintSel(); });
+    c.addEventListener('input', fitCinta);
+    c.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') c.blur(); if (e.key === 'Escape') { c.value = sinte(P()); c.blur(); } });
     c.addEventListener('blur', () => {
-      const t = c.textContent.trim().toUpperCase(); c.textContent = t;
-      if (t) cintas[P()] = t; else delete cintas[P()];
-      saveCintas(); render(); say(t ? `Cinta de la ${partName(P())}: ${t}.` : `Cinta de la ${partName(P())} despegada.`);
+      const t = c.value.trim().toUpperCase(), ch = channelOf(P());
+      if (t === sinte(P())) { render(); return; }
+      if (t) cintas[ch] = t; else delete cintas[ch];
+      saveCintas(); render(); say(t ? `Cinta del canal ${ch}: ${t}. Vale para canción y patrón.` : `Cinta del canal ${ch} despegada.`);
     });
-    explain(c, () => (cintas[P()] ? `Cinta: ${cintas[P()]}. Haz clic para cambiar el nombre.` : 'Haz clic para escribir qué sinte va en este canal.'));
+    explain(c, () => `Cinta del canal ${channelOf(P())}: qué sinte va en ese cable. Clic para escribir (hasta 12 letras), Enter guarda. Es la misma en canción y en patrón.`);
 
-    tira.append(cab, el('span', 'fl grp', 'ENVÍOS'), envios, el('span', 'fl grp', 'PAN · MUTE'), filaPan, el('span', 'fl grp', 'VOLUMEN'), fader, zona);
+    tira.append(cab, s.voz, el('span', 'fl grp', 'EFECTOS'), efectos, el('span', 'fl grp', 'PAN · DRY'), fila, s.qy, fader, zona);
     tirasBox.append(tira);
-    Object.assign(s, { tira, cinta: c, paintCinta, knobs: [...ks, pan] });
+    Object.assign(s, { tira, cinta: c, fitCinta, knobs: [...ks, pan, dry] });
     strips.push(s);
   }
 
+  // ---- el selector de voces ----
+  const voces = place(el('div'), 850, 150, 1560, 270);
+  voces.id = 'voces'; voces.hidden = true;
+  let vocesParte = 0, vocesFam = 0;
+  function abrirVoces(i) {
+    vocesParte = PAGES[page].parts[i];
+    vocesFam = V[state[vocesParte].voz]?.[0] ?? 0;
+    pintarVoces();
+    voces.hidden = false;
+    (voces.querySelector('.voces-l button.on') || voces.querySelector('.voces-l button'))?.focus();
+  }
+  function cerrarVoces() { voces.hidden = true; }
+  function pintarVoces() {
+    const p = vocesParte, actual = state[p].voz;
+    voces.innerHTML = '';
+    const cab = el('div', 'cab', `<span>Voz de la ${partName(p)} <small>· canal ${channelOf(p)}${sinte(p) ? ' · cinta ' + sinte(p) : ''}</small></span><span class="grow"></span><small>Ahora: ${vozTxt(actual)}</small>`);
+    const cerrar = el('button', 'cerrar', 'CERRAR ✕'); cerrar.type = 'button'; cerrar.addEventListener('click', cerrarVoces);
+    cab.append(cerrar);
+    const fams = el('div', 'lista');
+    VOCES.familias.forEach((f, fi) => {
+      const b = el('button', 'it' + (fi === vocesFam ? ' on' : ''), f); b.type = 'button';
+      b.addEventListener('click', () => { vocesFam = fi; pintarVoces(); });
+      fams.append(b);
+    });
+    const lista = el('div', 'lista voces-l');
+    V.forEach((v, vi) => {
+      if (v[0] !== vocesFam) return;
+      const b = el('button', 'it' + (vi === actual ? ' on' : ''), v[1]); b.type = 'button';
+      b.addEventListener('click', () => {
+        state[p].voz = vi; pulseSend(); cerrarVoces(); render();
+        say(`Voz de la ${partName(p)}: ${v[1]} (banco ${v[2]}/${v[3]}, programa ${v[4] + 1}).`);
+      });
+      lista.append(b);
+    });
+    const cols = el('div', 'cols'); cols.append(fams, lista);
+    voces.append(cab, cols);
+  }
+  voces.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); cerrarVoces(); } });
+
+  // ---- pintar ----
+  function setHelp(t) { help = t; if (t) primera = false; drawLcd(); }
+  function say(t) { last = t; primera = false; drawLcd(); }
+  function drawLcd() {
+    const pg = PAGES[page], p = pg.parts[sel], st = state[p];
+    const quien = p < 16 ? `CH ${p + 1}` : `${PATT[p - 16]} · CH ${channelOf(p)}`;
+    const estado = p < 16 ? (st.qy ? 'QY suena' : 'QY callado') : (st.vol0 ? 'VOL 0' : `vol ${st.vol}`);
+    const ctx = `${quien} · ${vozTxt(st.voz).replace(/^\d+ /, '')}${sinte(p) ? ' · ' + sinte(p) : ''} · ${estado}`;
+    const bienvenida = 'Mezcla las partes internas del QY100. Pasa el mouse por cualquier control y aquí se explica qué hace.';
+    document.getElementById('mixlcd').innerHTML =
+      `<div class="top"><span class="pill">QY100</span><span>${pg.lcd}</span><span>›</span><span>${ctx}</span></div>`
+      + `<div class="help">${help || (primera ? bienvenida : '')}</div>`
+      + `<div class="last">${last}</div>`;
+    const h = document.querySelector('#mixlcd .help');
+    for (let t = 1.2; t >= 0.7; t -= 0.05) { h.style.fontSize = t + 'cqw'; if (h.scrollHeight <= h.clientHeight + 1) break; }
+  }
   function paintStrip(i) {
     const p = PAGES[page].parts[i], s = strips[i], st = state[p];
     s.num.textContent = p < 16 ? String(p + 1) : PATT[p - 16];
-    s.canal.textContent = 'CANAL ' + channelOf(p);
-    s.tapa.style.top = (100 - st.vol / 127 * 100) + '%';
-    s.vol.textContent = st.vol;
+    s.rol.textContent = p < 16 ? '' : ROL[p - 16];
+    s.voz.innerHTML = `<span>${vozTxt(st.voz)}</span><span>▾</span>`;
+    const vol = p >= 16 && st.vol0 ? 0 : st.vol;
+    s.tapa.style.top = (100 - vol / 127 * 100) + '%';
+    s.vol.textContent = p >= 16 && st.vol0 ? `0 (${st.vol})` : st.vol;
     s.knobs.forEach((k) => k.paint());
-    s.mute.classList.toggle('on', st.mute);
-    s.tira.classList.toggle('muda', st.mute);
-    if (document.activeElement !== s.cinta) s.cinta.textContent = cintas[p] || '';
-    s.paintCinta();
-  }
-
-  // ---- pintar ----
-  function setHelp(t) { help = t; drawLcd(); }
-  function say(t) { last = t; drawLcd(); }
-  function drawLcd() {
-    const pg = PAGES[page], p = pg.parts[sel], st = state[p];
-    const where = p < 16 ? `Canal ${p + 1}` : `Pista ${PATT[p - 16]} · canal ${p - 15}`;
-    const idle = `${where} · ${who(p)} · vol ${st.vol} · pan ${panText(st.pan)}${st.mute ? ' · MUTE' : ''}`;
-    document.getElementById('mixlcd').innerHTML =
-      `<div class="top"><span class="pill">MIX</span><span>${pg.lcd}</span><span class="grow"></span><span><i class="dot on"></i>Salida: L6max MIDI I/O</span></div>`
-      + `<div class="help">${help || idle}</div>`
-      + `<div class="last"><span>${last}</span></div>`;
-    fitHelp();
-  }
-  function fitHelp() {
-    const h = document.querySelector('#mixlcd .help');
-    for (let t = 1.2; t >= 0.7; t -= 0.05) { h.style.fontSize = t + 'cqw'; if (h.scrollHeight <= h.clientHeight + 1) break; }
+    if (p < 16) {
+      s.qy.className = 'fk qy' + (st.qy ? ' on' : '');
+      s.qy.innerHTML = `<i></i>QY<span class="sub">${st.qy ? 'suena' : 'callado'}</span>`;
+    } else {
+      s.qy.className = 'fk qy vol0' + (st.vol0 ? ' on' : '');
+      s.qy.innerHTML = st.vol0 ? 'VOL 0 ⚠' : 'VOL 0';
+    }
+    s.tira.classList.toggle('callada', p < 16 ? !st.qy : st.vol0);
+    if (document.activeElement !== s.cinta) { s.cinta.value = sinte(p); s.fitCinta(); }
   }
   function paintSel() { strips.forEach((s, i) => s.tira.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
@@ -361,19 +476,21 @@
     paintSel();
   }
   function sendAll() {
-    ledSend.classList.add('on'); setTimeout(() => ledSend.classList.remove('on'), 400);
-    say('Enviado: 24 tiras, 168 valores (en la maqueta, de mentira).');
+    flashKey(sendKey);
+    let n = 0; const t = setInterval(() => { pulseSend(); if (++n > 5) clearInterval(t); }, 90);
+    say('Enviado: 24 tiras (voz, volumen, efectos y QY). En la maqueta, de mentira.');
   }
-  // atajos: 1-3 páginas, E enviar todo, L leer, P piel
+  // atajos: 1-3 páginas, E enviar todo, L leer
   addEventListener('keydown', (e) => {
-    if (e.target.isContentEditable || e.metaKey || e.ctrlKey) return;
+    if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || !voces.hidden) return;
     const k = e.key.toLowerCase();
     if (k >= '1' && k <= '3') pageKeys[Number(k) - 1].click();
-    else if (k === 'e') sendAll();
-    else if (k === 'p') skinKey.click();
+    else if (k === 'e') sendKey.click();
+    else if (k === 'l') { flashKey(readKey); readKey.click(); }
   });
-  document.fonts.ready.then(render);
+  await document.fonts.ready;
   render();
+})();
 </script>
 </body>
 </html>
