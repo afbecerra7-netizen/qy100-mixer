@@ -31,16 +31,16 @@
 
   /* --- la pantalla: estado, ayuda y lo último que pasó --- */
   #lcdwrap { width: 100%; height: 100%; }
-  #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; gap: 0.5cqw; padding: 1.1cqw 1.6cqw;
+  #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 0.4cqw; padding: 0.9cqw 1.6cqw 0.8cqw;
     color: #1f2a14; font: 700 1.45cqw/1.25 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
   #mixlcd .top { display: flex; align-items: center; gap: 1.1cqw; text-transform: uppercase; }
   #mixlcd .pill { background: #1f2a14; color: var(--tint, #bad18f); border-radius: 1cqw; padding: 0.15cqw 0.9cqw; }
   #mixlcd .grow { flex: 1; }
   #mixlcd .dot { display: inline-block; width: 1cqw; height: 1cqw; border-radius: 50%; border: 0.18cqw solid #1f2a14; vertical-align: -0.1cqw; margin-right: 0.5cqw; }
   #mixlcd .dot.on { background: #1f2a14; }
-  #mixlcd .help { font-weight: 600; font-size: 1.2cqw; line-height: 1.3; align-self: center; min-height: 0; overflow: hidden;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  #mixlcd .last { font-size: 1.2cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; display: flex; justify-content: space-between; text-transform: uppercase; }
+  /* la ayuda nunca sale de su franja: si no cabe, la letra se achica (fitHelp) */
+  #mixlcd .help { font-weight: 600; font-size: 1.2cqw; line-height: 1.22; min-height: 0; overflow: hidden; display: flex; align-items: center; }
+  #mixlcd .last { font-size: 1.1cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; display: flex; justify-content: space-between; text-transform: uppercase; }
 
   /* --- teclas con nombre --- */
   .fk .sub { display: block; font-size: 0.7em; font-weight: 600; opacity: 0.75; font-style: normal; margin-top: 0.25em; }
@@ -348,6 +348,11 @@
       `<div class="top"><span class="pill">MIX</span><span>${pg.lcd}</span><span class="grow"></span><span><i class="dot on"></i>Salida: L6max MIDI I/O</span></div>`
       + `<div class="help">${help || idle}</div>`
       + `<div class="last"><span>${last}</span></div>`;
+    fitHelp();
+  }
+  function fitHelp() {
+    const h = document.querySelector('#mixlcd .help');
+    for (let t = 1.2; t >= 0.7; t -= 0.05) { h.style.fontSize = t + 'cqw'; if (h.scrollHeight <= h.clientHeight + 1) break; }
   }
   function paintSel() { strips.forEach((s, i) => s.tira.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
