@@ -26,6 +26,7 @@
 
 import { buildParameterChange, buildParameterRequest, buildBulkDumpRequest } from './consola/sysex.js';
 import { MidiLink } from './consola/midi.js';
+import { SerieLink, VELOCIDADES } from './serie.js';
 
 const disco = window.qyMixer || null;   // the app's disk (preload.cjs); absent in a plain browser
 const guardado = (disco ? await disco.cargar().catch(() => null) : null) || {};
@@ -44,6 +45,7 @@ const I18N = {
     sendAll: 'ENVIAR<br>TODO', sendAllSub: '24 tiras', leer: 'LEER DEL QY', leerSub: 'esta página', leyendo: 'LEYENDO…',
     puertoMidi: 'PUERTO MIDI ▾', ninguno: 'ninguno', noEsta: (n) => `«${n}» no está`, efectos: 'EFECTOS',
     salida: 'SALIDA · hacia el MIDI IN del QY100', entrada: 'ENTRADA · desde su MIDI OUT (para LEER)', sinEntrada: 'ninguna',
+    toHost: 'TO HOST · cable serie (manda, no lee)', noUsar: 'no usar', serieSub: (m) => `TO HOST · ${m}`,
     suena: 'suena', callado: 'callado', cinta: 'PEGAR CINTA', cerrar: 'CERRAR ✕', ahora: 'Ahora',
     parte: (n) => 'parte ' + n, pista: (t) => 'pista ' + t, canal: 'canal',
     vozDe: (q) => `Voz de la ${q}`, cintaDe: (t) => 'cinta ' + t,
@@ -66,7 +68,7 @@ const I18N = {
       ledEnvio: 'Luz ENVÍO: parpadea cada vez que algo sale hacia el QY100.',
       sendAll: 'ENVIAR TODO: manda al QY100 todo lo que la app conoce de las 24 tiras (voz, volumen, efectos y el botón QY) y los efectos. Lo que está en «—» no se manda. Úsalo al prenderlo o después de cambiar de patrón.',
       leer: 'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página y de los efectos. Necesita una ENTRADA MIDI con el cable de vuelta (MIDI OUT del QY100). Por TO HOST no funciona: el QY100 no contesta lecturas XG por ahí.',
-      puerto: 'PUERTO MIDI: la salida que llega al QY100 (en el estudio, la Zoom: L6max MIDI I/O; o «QY100 TO HOST» con puente_host.py, que manda pero no lee) y, para LEER, la entrada que trae su respuesta.',
+      puerto: 'PUERTO MIDI: la salida que llega al QY100 (en el estudio, la Zoom: L6max MIDI I/O) y, para LEER, la entrada que trae su respuesta. O el cable TO HOST directo, con HOST SELECT en PC-2 o PC-1: manda, pero no lee.',
       perilla: (txt, def) => `${txt}. Arrastra arriba o abajo (Shift = fino), rueda o flechas. Doble clic: ${def}.`,
       cabCancion: (n) => `Parte ${n} del modo canción: recibe por el canal MIDI ${n}.`,
       cabPatron: (t, rol, ch) => `Pista ${t} del patrón (${rol}): sale por el canal ${ch}.`,
@@ -100,6 +102,9 @@ const I18N = {
       nadaQueEnviar: 'Nada que enviar: todavía no hay ningún valor leído ni puesto.',
       salida: (n) => `Salida MIDI: ${n}.`, entrada: (n) => `Entrada MIDI: ${n}.`, sinSalidaElegida: 'Sin salida MIDI.', sinEntradaElegida: 'Sin entrada MIDI.',
       sinMidi: (e) => `No se pudo abrir el MIDI: ${e}`,
+      serieAbierta: (m, b) => `TO HOST abierto: ${m}, ${b} baudios. Manda al QY100; leer, solo por MIDI.`,
+      serieOcupada: (q) => `El cable TO HOST lo tiene otro programa (${q}). Ciérralo y vuelve a elegirlo.`,
+      serieNo: (e) => `No se pudo abrir el cable TO HOST: ${e}`, serieFuera: 'El cable TO HOST se desconectó.', serieCerrada: 'TO HOST cerrado.',
       error: (e) => `Error al mandar: ${e}`,
       fxTipo: (fx, t) => `${fx}: ${t}.`, fxRet: (fx, v) => `Retorno de ${fx}: ${v}.`, general: (v) => `Volumen general: ${v}.`,
     },
@@ -113,6 +118,7 @@ const I18N = {
     sendAll: 'SEND<br>ALL', sendAllSub: '24 strips', leer: 'READ FROM QY', leerSub: 'this page', leyendo: 'READING…',
     puertoMidi: 'MIDI PORT ▾', ninguno: 'none', noEsta: (n) => `«${n}» not found`, efectos: 'EFFECTS',
     salida: "OUTPUT · to the QY100's MIDI IN", entrada: 'INPUT · from its MIDI OUT (for READ)', sinEntrada: 'none',
+    toHost: 'TO HOST · serial cable (sends, no read)', noUsar: 'do not use', serieSub: (m) => `TO HOST · ${m}`,
     suena: 'playing', callado: 'silent', cinta: 'ADD TAPE', cerrar: 'CLOSE ✕', ahora: 'Now',
     parte: (n) => 'part ' + n, pista: (t) => 'track ' + t, canal: 'channel',
     vozDe: (q) => `Voice for ${q}`, cintaDe: (t) => 'tape ' + t,
@@ -135,7 +141,7 @@ const I18N = {
       ledEnvio: 'SEND light: blinks every time something goes out to the QY100.',
       sendAll: 'SEND ALL: sends the QY100 everything the app knows about the 24 strips (voice, volume, effects and the QY button) and the effects. Anything at «—» is not sent. Use it after switching it on or changing pattern.',
       leer: "READ FROM QY: brings the values of this page's 8 strips and of the effects from the QY100. Needs a MIDI INPUT with the return cable (the QY100's MIDI OUT). Not over TO HOST: the QY100 answers no XG read there.",
-      puerto: 'MIDI PORT: the output that reaches the QY100 (in the studio, the Zoom: L6max MIDI I/O; or «QY100 TO HOST» with puente_host.py, which sends but cannot read) and, for READ, the input that brings its answer.',
+      puerto: 'MIDI PORT: the output that reaches the QY100 (in the studio, the Zoom: L6max MIDI I/O) and, for READ, the input that brings its answer. Or the TO HOST cable directly, with HOST SELECT on PC-2 or PC-1: it sends, but cannot read.',
       perilla: (txt, def) => `${txt}. Drag up or down (Shift = fine), wheel or arrows. Double-click: ${def}.`,
       cabCancion: (n) => `Song mode part ${n}: receives on MIDI channel ${n}.`,
       cabPatron: (t, rol, ch) => `Pattern track ${t} (${rol}): goes out on channel ${ch}.`,
@@ -169,6 +175,9 @@ const I18N = {
       nadaQueEnviar: 'Nothing to send: no value has been read or set yet.',
       salida: (n) => `MIDI output: ${n}.`, entrada: (n) => `MIDI input: ${n}.`, sinSalidaElegida: 'No MIDI output.', sinEntradaElegida: 'No MIDI input.',
       sinMidi: (e) => `MIDI could not be opened: ${e}`,
+      serieAbierta: (m, b) => `TO HOST open: ${m}, ${b} baud. Sends to the QY100; reading only over MIDI.`,
+      serieOcupada: (q) => `Another program has the TO HOST cable (${q}). Close it and choose it again.`,
+      serieNo: (e) => `The TO HOST cable could not be opened: ${e}`, serieFuera: 'The TO HOST cable was unplugged.', serieCerrada: 'TO HOST closed.',
       error: (e) => `Error sending: ${e}`,
       fxTipo: (fx, t) => `${fx}: ${t}.`, fxRet: (fx, v) => `${fx} return: ${v}.`, general: (v) => `Master volume: ${v}.`,
     },
@@ -272,7 +281,7 @@ let cintas = guardado.cintas && typeof guardado.cintas === 'object' ? guardado.c
 const GIROS = [-1.6, 1.1, -0.7, 1.8, -1.2, 0.6, -1.9, 1.3];
 let mode = guardado.vista?.mode === 1 ? 1 : 0, bank = guardado.vista?.bank === 1 ? 1 : 0;   // mode 0 Song, 1 Pattern; group 0 = 1–8, 1 = 9–16
 let page = mode === 1 ? 2 : bank, sel = 0, help = '', primera = true;
-const puertos = { salida: guardado.puerto?.salida || '', entrada: guardado.puerto?.entrada || '' };
+const puertos = { salida: guardado.puerto?.salida || '', entrada: guardado.puerto?.entrada || '', serie: VELOCIDADES[guardado.puerto?.serie] ? guardado.puerto.serie : '' };
 
 let guardarT = 0;
 function guardar() {
@@ -304,6 +313,11 @@ const DEV = 0;            // device number 1 (F0 43 10 …)
 const GAP_MS = 16;
 const QY_REPLY_GAP_MS = 80;   // a QY drops what arrives while it is still finishing its reply (Doffu)
 const link = new MidiLink();
+// The TO HOST cable, when chosen, replaces the MIDI ports for sending and receiving.
+const serie = new SerieLink();
+const usaSerie = () => !!puertos.serie;
+const hayDestino = () => (usaSerie() ? serie.abierto : !!link.output);
+const hayEntrada = () => (usaSerie() ? serie.abierto : !!link.input);
 const cola = [];
 const enCola = new Map();
 let bombeando = false, pausa = null, lastQyIncomingAt = 0;
@@ -317,12 +331,12 @@ function registrar(dir, bytes) {
 async function enviarCrudo(bytes) {
   const wait = lastQyIncomingAt + QY_REPLY_GAP_MS - performance.now();
   if (wait > 0) await sleep(wait);
-  link.send(bytes);
+  if (usaSerie()) await serie.send(bytes); else link.send(bytes);
   registrar('>', bytes);
   pulseSend();
 }
 function mandar(clave, ...mensajes) {
-  if (!link.output) { say(L.s.sinSalida); return false; }
+  if (!hayDestino()) { say(L.s.sinSalida); return false; }
   const prev = enCola.get(clave);
   if (prev) { prev.mensajes = mensajes; return true; }
   const it = { clave, mensajes };
@@ -340,7 +354,7 @@ async function bombear() {
       const it = cola.shift();
       enCola.delete(it.clave);
       for (const m of it.mensajes) {
-        if (!link.output) break;
+        if (!hayDestino()) break;
         try { await enviarCrudo(m); } catch (e) { say(L.s.error(e.message)); }
         await sleep(GAP_MS);
       }
@@ -370,7 +384,7 @@ function esperar(pred, ms) {
     esperas.add(w);
   });
 }
-link.onMessage = (bytes) => {
+const recibir = (bytes) => {
   if (bytes[0] === 0xf8 || bytes[0] === 0xfe) return;
   lastQyIncomingAt = performance.now();
   if (bytes[0] === 0xf0) registrar('<', bytes);
@@ -412,8 +426,8 @@ async function leerBloque(base, want) {
 let leyendo = false;
 async function leerPagina() {
   if (leyendo) return;
-  if (!link.output) { say(L.s.leerSinSalida); return; }
-  if (!link.input) { say(L.s.leerSinEntrada); return; }
+  if (!hayDestino()) { say(L.s.leerSinSalida); return; }
+  if (!hayEntrada()) { say(L.s.leerSinEntrada); return; }
   leyendo = true; readKey.disabled = true; readKey.innerHTML = `${L.leyendo}<span class="sub">${L.leerSub}</span>`;
   await colaVacia();
   let soltar; pausa = new Promise((r) => { soltar = r; });
@@ -451,13 +465,13 @@ async function leerPagina() {
     leyendo = false; readKey.disabled = false; readKey.innerHTML = `${L.leer}<span class="sub">${L.leerSub}</span><span class="kb">L</span>`;
   }
   pintaFx.forEach((f) => f()); render(); guardar();
-  say(got ? L.s.leido(PAGES[page].label, got, faltan) : /TO HOST/i.test(link.input?.name || '') ? L.s.nadaLeidoHost : L.s.nadaLeido);
+  say(got ? L.s.leido(PAGES[page].label, got, faltan) : usaSerie() || /TO HOST/i.test(link.input?.name || '') ? L.s.nadaLeidoHost : L.s.nadaLeido);
 }
 
 let enviandoTodo = false;
 async function sendAll() {
   flashKey(sendKey);
-  if (!link.output) { say(L.s.sinSalida); return; }
+  if (!hayDestino()) { say(L.s.sinSalida); return; }
   if (enviandoTodo) return;
   const antes = cola.reduce((n, it) => n + it.mensajes.length, 0);
   for (const fx of Object.keys(FX)) { mandarFxTipo(fx); mandarFxRet(fx); }
@@ -775,10 +789,23 @@ function abrirPuertos() {
     return c;
   };
   const cols = el('div', 'cols puertos');
+  // choosing a MIDI port goes back to MIDI: the cable is let go
+  const aMidi = () => { if (usaSerie()) { puertos.serie = ''; serie.cerrar(); } };
+  const midiActual = (n) => (usaSerie() ? null : n);
   cols.append(
-    columna(L.salida, link.listOutputs(), puertos.salida, true, (n) => { puertos.salida = n; abrirSalida(); guardar(); say(n ? L.s.salida(n) : L.s.sinSalidaElegida); }),
-    columna(L.entrada, link.listInputs(), puertos.entrada, true, (n) => { puertos.entrada = n; abrirEntrada(); guardar(); say(n ? L.s.entrada(n) : L.s.sinEntradaElegida); }),
+    columna(L.salida, link.listOutputs(), midiActual(puertos.salida), true, (n) => { aMidi(); puertos.salida = n; abrirSalida(); guardar(); say(n ? L.s.salida(n) : L.s.sinSalidaElegida); }),
+    columna(L.entrada, link.listInputs(), midiActual(puertos.entrada), true, (n) => { aMidi(); puertos.entrada = n; abrirEntrada(); guardar(); say(n ? L.s.entrada(n) : L.s.sinEntradaElegida); }),
   );
+  if (serie.disponible) {
+    const c = el('div', 'lista');
+    c.append(el('div', 'tit', L.toHost));
+    for (const modo of ['', ...Object.keys(VELOCIDADES)]) {
+      const b = el('button', 'it' + (modo === puertos.serie ? ' on' : ''), modo ? `${modo} · ${VELOCIDADES[modo].toLocaleString(lang)}` : L.noUsar); b.type = 'button';
+      b.addEventListener('click', async () => { await elegirSerie(modo, true); abrirPuertos(); });
+      c.append(b);
+    }
+    cols.append(c);
+  }
   voces.append(cabecera(L.puertoMidi.replace(' ▾', '')), cols);
   voces.hidden = false;
   voces.querySelector('.it.on, .it')?.focus();
@@ -793,19 +820,39 @@ function abrirEntrada() {
   if (p) link.selectInput(p.id);
   else { if (link.input) link.input.onmidimessage = null; link.input = null; }
 }
+// Opens the TO HOST cable (modo = 'PC-2' | 'PC-1'), or lets it go (''). Refuses while another
+// program has it: two readers on one serial port share out the bytes and replies go missing.
+async function elegirSerie(modo, conGesto) {
+  if (!modo) { const habia = usaSerie(); puertos.serie = ''; await serie.cerrar(); guardar(); pintaPuerto(); if (habia) say(L.s.serieCerrada); return; }
+  puertos.serie = modo; guardar();
+  await serie.cerrar();
+  const quien = await disco?.quienTieneSerie?.().catch(() => null);
+  const otros = quien?.procesos || [];
+  if (otros.length) { pintaPuerto(); say(L.s.serieOcupada(otros.map((p) => `${p.cmd}, PID ${p.pid}`).join('; '))); return; }
+  try {
+    await serie.abrir(modo, conGesto);
+    say(L.s.serieAbierta(modo, VELOCIDADES[modo].toLocaleString(lang)));
+  } catch (e) { say(L.s.serieNo(e.message || String(e))); }
+  pintaPuerto();
+}
+serie.onMessage = (b) => recibir(b);
+serie.onClose = () => { pintaPuerto(); say(L.s.serieFuera); };
+if (serie.disponible) navigator.serial.addEventListener('connect', () => { if (usaSerie() && !serie.abierto) elegirSerie(puertos.serie, false); });
 function pintaPuerto() {
-  ledPuerto.className = 'fled ' + (link.output ? 'green on' : 'ambar');
-  const sub = link.output ? link.output.name : puertos.salida ? L.noEsta(puertos.salida) : L.ninguno;
+  ledPuerto.className = 'fled ' + (hayDestino() ? 'green on' : 'ambar');
+  const sub = usaSerie() ? (serie.abierto ? L.serieSub(puertos.serie) : L.noEsta(L.serieSub(puertos.serie)))
+    : link.output ? link.output.name : puertos.salida ? L.noEsta(puertos.salida) : L.ninguno;
   portKey.innerHTML = `${L.puertoMidi}<span class="sub nombre-puerto">${esc(sub)}</span>`;
 }
 let midiError = '';
 try {
   await link.requestAccess();
+  link.onMessage = recibir;
   link.onDevicesChanged = () => {
     const antes = link.output?.name;
     abrirSalida(); if (!link.input || !link.listInputs().includes(link.input)) abrirEntrada();
     if (!voces.hidden && voces.querySelector('.puertos')) abrirPuertos();
-    if (antes !== link.output?.name) say(link.output ? L.s.salida(link.output.name) : L.s.sinSalidaElegida);
+    if (antes !== link.output?.name && !usaSerie()) say(link.output ? L.s.salida(link.output.name) : L.s.sinSalidaElegida);
   };
   abrirSalida(); abrirEntrada();
 } catch (e) { midiError = e.message || String(e); }
@@ -875,4 +922,7 @@ pintaFx.forEach((f) => f());
 render();
 
 // For the scripted checks (pruebas/): read-only views of what the page holds.
-window.__mixer = { voces: V.length, registro, state, maestro, puertos, colaVacia, link };
+// the remembered TO HOST cable is reopened once the screen is up (it may say who has it)
+if (usaSerie()) elegirSerie(puertos.serie, false);
+
+window.__mixer = { voces: V.length, registro, state, maestro, puertos, colaVacia, link, serie, elegirSerie };

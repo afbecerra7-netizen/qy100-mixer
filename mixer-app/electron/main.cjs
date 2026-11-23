@@ -8,19 +8,25 @@
 //   can read voces.json and the ES modules load.
 //
 // Electron grants every permission by default; the handlers below grant only Web MIDI with
-// SysEx, without asking, and refuse everything else (camera, microphone, notifications).
+// SysEx and Web Serial (the TO HOST cable), without asking, and refuse everything else
+// (camera, microphone, notifications).
 const { app, BrowserWindow, ipcMain, net, protocol, screen, session } = require('electron')
+const { execFile } = require('node:child_process')
 const fs = require('node:fs')
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
 
-const PERMITIDOS = new Set(['midi', 'midiSysex'])
+const PERMITIDOS = new Set(['midi', 'midiSysex', 'serial'])
 const RAIZ = path.join(__dirname, '..', 'app')
 // Packaged, the icon comes from the .icns; run from the repository, the Dock gets this one.
 const ICONO = path.join(__dirname, '..', 'assets', 'icono', 'qy100-mixer-512.png')
 const MARGEN = 18           // px around the faceplate, for its shadow (see #marco in index.html)
 const PROPORCION = 1700 / 1000
 
+// Web Serial in Chromium also lists Bluetooth serial ports, and on macOS touching Bluetooth without
+// NSBluetoothAlwaysUsageDescription kills the app (TCC, measured 2026-11-23: SIGABRT on the first
+// navigator.serial call). The TO HOST cable is USB: Bluetooth serial is switched off instead.
+app.commandLine.appendSwitch('disable-features', 'EnableBluetoothSerialPortProfileInSerialApi')
 app.setName('QY100 Mixer')
 // QY_MIXER_DATOS=<folder> keeps the state elsewhere (the scripted checks start from nothing).
 app.setPath('userData', process.env.QY_MIXER_DATOS || path.join(app.getPath('appData'), 'qy100-mixer'))
@@ -101,7 +107,7 @@ function crearVentana() {
       try {
         if (PRUEBA) {
           const codigo = fs.readFileSync(PRUEBA, 'utf8')
-          const r = await win.webContents.executeJavaScript(codigo)
+          const r = await win.webContents.executeJavaScript(codigo, true)   // as from a click: the serial chooser may open
           console.log('PRUEBA ' + JSON.stringify(r))
         } else {
           const informe = await win.webContents.executeJavaScript(`(async () => {
@@ -111,7 +117,8 @@ function crearVentana() {
                               salidas: [...m.outputs.values()].map((p) => p.name) }))
               .catch((e) => ({ ok: false, error: String(e) }))
             const notificaciones = await Notification.requestPermission()
-            return { midi, notificaciones, voces: window.__mixer?.voces, pantalla: document.getElementById('mixlcd')?.innerText.replace(/\\s+/g, ' ') }
+            const serie = await navigator.serial.getPorts().then((ps) => ps.map((p) => p.getInfo())).catch((e) => String(e))
+            return { midi, serie, notificaciones, voces: window.__mixer?.voces, pantalla: document.getElementById('mixlcd')?.innerText.replace(/\\s+/g, ' ') }
           })()`)
           console.log('AUTOCOMPROBACION ' + JSON.stringify(informe))
         }
@@ -130,6 +137,33 @@ function crearVentana() {
   return win
 }
 
+// The TO HOST cable: USB-serial adapters show up as /dev/cu.usbserial-*.
+const cablesSerie = () => { try { return fs.readdirSync('/dev').filter((n) => n.startsWith('cu.usbserial')).map((n) => '/dev/' + n) } catch { return [] } }
+// Who else has the cable open (a puente_host.py, say): two readers on one serial port share out
+// the incoming bytes and replies go missing, so the page refuses to open it while anyone does.
+ipcMain.handle('serie:quien', () => new Promise((resolve) => {
+  const cables = cablesSerie()
+  if (!cables.length) return resolve({ cables, procesos: [] })
+  const propios = new Set(app.getAppMetrics().map((m) => m.pid))
+  execFile('/usr/sbin/lsof', ['-F', 'pc', ...cables], (_err, out) => {
+    const procesos = []
+    let actual = null
+    for (const l of String(out || '').split('\n')) {
+      if (l[0] === 'p') { actual = { pid: Number(l.slice(1)), cmd: '' }; if (!propios.has(actual.pid)) procesos.push(actual) }
+      else if (l[0] === 'c' && actual) actual.cmd = l.slice(1)
+    }
+    // the command name alone says «Python»: add the arguments, which name the script
+    let pendientes = procesos.length
+    if (!pendientes) return resolve({ cables, procesos })
+    for (const p of procesos) execFile('/bin/ps', ['-o', 'args=', '-p', String(p.pid)], (_e, a) => {
+      const args = String(a || '').trim()
+      const script = args.split(/\s+/).find((w) => /\.py$/.test(w))
+      if (script) p.cmd = path.basename(script)
+      if (--pendientes === 0) resolve({ cables, procesos })
+    })
+  })
+}))
+
 ipcMain.handle('estado:cargar', () => leerEstado())
 ipcMain.on('estado:guardar', (_e, estado) => guardarEstado(estado))
 ipcMain.on('registro:empezar', () => { try { fs.writeFileSync(REGISTRO, '') } catch { /* sin registro */ } })
@@ -140,6 +174,13 @@ app.whenReady().then(() => {
   if (!app.isPackaged && process.platform === 'darwin' && app.dock) app.dock.setIcon(ICONO)
   session.defaultSession.setPermissionRequestHandler((_wc, permiso, cb) => cb(PERMITIDOS.has(permiso)))
   session.defaultSession.setPermissionCheckHandler((_wc, permiso) => PERMITIDOS.has(permiso))
+  // Web Serial: every serial device is allowed, and the chooser picks the USB-serial cable alone.
+  session.defaultSession.setDevicePermissionHandler((d) => d.deviceType === 'serial')
+  session.defaultSession.on('select-serial-port', (event, lista, _wc, elegir) => {
+    event.preventDefault()
+    const cable = lista.find((p) => /usbserial/i.test(`${p.portName} ${p.displayName}`)) || lista.find((p) => p.vendorId)
+    elegir(cable ? cable.portId : '')
+  })
   crearVentana()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) crearVentana()

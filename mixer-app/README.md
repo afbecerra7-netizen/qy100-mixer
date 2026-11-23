@@ -46,6 +46,16 @@ sequencer request (`dump setup`, model `5F`) answers inside bulk mode. READ says
 needs MIDI: the console reads XG over MIDI. And **one bridge per cable**: two `puente_host.py`
 on the same serial port share out the incoming bytes, and replies go missing.
 
+**The TO HOST cable, directly.** MIDI PORT has a third column, *TO HOST · serial cable*: `PC-2`
+(38,400) or `PC-1` (31,250), matching `HOST SELECT`. The app opens the USB-serial adapter itself
+over Web Serial (`app/serie.js`), with no `puente_host.py` and no virtual port, and remembers it.
+Before opening it asks `lsof` who else has the cable, and if anyone does (a `puente_host.py`) it
+names the program and PID and does not open it. While the app has the cable, no other program can
+use it. `[M]` 2026-11-23 on `PC-2`: XG Display Data went out, and the QY100's `dump setup` came back
+whole through it (48 bytes, checksum ok) — `pruebas/to_host.js`. Chromium's Web Serial also lists
+Bluetooth serial ports, which on macOS kills an app without a Bluetooth usage description (TCC,
+`SIGABRT`); `main.cjs` switches Bluetooth serial off, since the cable is USB.
+
 ## Checking it without a device
 
 `pruebas/qy_falso.py` is a pretend QY100 on two virtual CoreMIDI ports; `pruebas/recorrido.js`

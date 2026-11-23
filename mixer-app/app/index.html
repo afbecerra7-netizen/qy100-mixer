@@ -182,7 +182,7 @@
   .sin-valor .mk::after { opacity: 0; }                   /* never read nor sent: no needle */
   .fader-tapa.sin-valor { opacity: 0.35; }
   .fk .sub.nombre-puerto { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #voces .cols.puertos { grid-template-columns: 1fr 1fr; }
+  #voces .cols.puertos { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
   #voces .cols.puertos .lista { display: flex; flex-direction: column; }
   #voces .tit { font: 700 0.8cqw/1 system-ui, sans-serif; letter-spacing: 0.12em; opacity: 0.75; padding: 0.2cqw 0.6cqw 0.4cqw; }
   .fk:disabled { opacity: 0.5; cursor: progress; }

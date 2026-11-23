@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld('qyMixer', {
   guardar: (estado) => ipcRenderer.send('estado:guardar', estado),
   empezarRegistro: () => ipcRenderer.send('registro:empezar'),
   registrar: (linea) => ipcRenderer.send('registro:linea', linea),
+  quienTieneSerie: () => ipcRenderer.invoke('serie:quien'),
 })
