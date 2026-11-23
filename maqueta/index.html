@@ -9,43 +9,75 @@
   Nada de esto manda MIDI: los valores son de muestra y los botones solo cambian la vista.
   La gráfica es la del emulador de Doffu (qy-look.css, GPL-3.0). El logo y el nombre DOFFU
   no son GPL y no se usan: la marca de esta app es provisional.
+  La cinta con rotulador viene de MESA 101; la letra es Permanent Marker (Apache-2.0, en fuentes/).
+
+  Revisión de UX (2026-11-22), lo que cambió y por qué:
+  - El nombre de cada canal es una cinta al pie de la tira: se hace clic y se escribe. Vacía dice
+    PEGAR CINTA. Antes había una tecla NAMES que no hacía nada.
+  - Cada perilla dice su valor debajo, y las de envío van agrupadas bajo ENVÍOS.
+  - La pantalla verde ya no repite los faders: dice el estado de la conexión, qué hace el control
+    que está bajo el mouse y qué acaba de pasar. Así se explica el MUTE, que no hace lo mismo en
+    canción que en patrón.
+  - Las acciones llevan su nombre entero (ENVIAR TODO, LEER DEL QY, PUERTO MIDI, PIEL), y las
+    páginas dicen qué canales cubren.
+  - Faders más largos; atajos de teclado a la vista, como en el emulador.
 -->
 <link rel="stylesheet" href="qy-look.css">
 <style>
+  @font-face { font-family: 'Permanent Marker'; src: url('fuentes/PermanentMarker-Regular.ttf') format('truetype'); font-display: swap; }
   html, body { height: 100%; overflow: hidden; }
   main { max-width: none; height: 100%; padding: 8px; box-sizing: border-box; display: grid; place-items: center; }
   #face { width: min(100%, calc((100vh - 16px) * 1700 / 1000)); }
 
-  /* --- the screen: a mixer overview, like the QY100's own MIXER page --- */
+  /* --- la pantalla: estado, ayuda y lo último que pasó --- */
   #lcdwrap { width: 100%; height: 100%; }
-  #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; padding: 1.6cqw 2cqw 1.2cqw;
-    color: #1f2a14; font: 700 1.55cqw/1 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
-  #mixlcd .top { display: flex; align-items: center; gap: 1.2cqw; }
-  #mixlcd .pill { background: #1f2a14; color: var(--tint, #bad18f); border-radius: 1cqw; padding: 0.25cqw 1cqw; }
+  #mixlcd { position: absolute; inset: 0; display: grid; grid-template-rows: auto 1fr auto; gap: 0.5cqw; padding: 1.1cqw 1.6cqw;
+    color: #1f2a14; font: 700 1.45cqw/1.25 ui-monospace, Menlo, Consolas, monospace; letter-spacing: 0.04em; }
+  #mixlcd .top { display: flex; align-items: center; gap: 1.1cqw; text-transform: uppercase; }
+  #mixlcd .pill { background: #1f2a14; color: var(--tint, #bad18f); border-radius: 1cqw; padding: 0.15cqw 0.9cqw; }
   #mixlcd .grow { flex: 1; }
-  #mixlcd .bars { display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.2cqw; align-items: end; padding: 1.4cqw 0 0.6cqw; }
-  #mixlcd .col { display: grid; grid-template-rows: 1fr auto auto; height: 100%; justify-items: center; gap: 0.4cqw; }
-  #mixlcd .meter { width: 52%; height: 100%; border: 0.18cqw solid #1f2a14; position: relative; }
-  #mixlcd .meter i { position: absolute; left: 0; right: 0; bottom: 0; background: #1f2a14; }
-  #mixlcd .col.m .meter i { background: repeating-linear-gradient(45deg, #1f2a14 0 0.3cqw, transparent 0.3cqw 0.7cqw); }
-  #mixlcd .num { font-size: 1.35cqw; }
-  #mixlcd .mflag { font-size: 1.2cqw; min-height: 1.2cqw; }
-  #mixlcd .col.sel .num { background: #1f2a14; color: var(--tint, #bad18f); padding: 0 0.4cqw; }
-  #mixlcd .msg { display: flex; justify-content: space-between; font-size: 1.25cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.6cqw; }
+  #mixlcd .dot { display: inline-block; width: 1cqw; height: 1cqw; border-radius: 50%; border: 0.18cqw solid #1f2a14; vertical-align: -0.1cqw; margin-right: 0.5cqw; }
+  #mixlcd .dot.on { background: #1f2a14; }
+  #mixlcd .help { font-weight: 600; font-size: 1.2cqw; line-height: 1.3; align-self: center; min-height: 0; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  #mixlcd .last { font-size: 1.2cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; display: flex; justify-content: space-between; text-transform: uppercase; }
 
-  /* --- the strips, in the keyboard well --- */
-  .strip-num { font-size: max(8px, 2.1cqw); }
-  .strip-name { font-style: normal; font-weight: 600; opacity: 0.85; }
+  /* --- teclas con nombre --- */
+  .fk .sub { display: block; font-size: 0.7em; font-weight: 600; opacity: 0.75; font-style: normal; margin-top: 0.25em; }
+  .fk.page.on { background: var(--accent); color: #fff; }
+  .fk.wide { font-size: max(7px, 1.05cqw); }
+
+  /* --- las tiras --- */
+  .strip-bg { border-radius: 0.6cqw; background: rgba(255,255,255,.035); }
+  .strip-bg.sel { background: rgba(255,255,255,.09); box-shadow: inset 0 0 0 0.12cqw rgba(255,255,255,.18); }
+  .strip-num { font-size: max(9px, 2.3cqw); }
+  .strip-sub { font-style: normal; font-weight: 600; opacity: 0.7; letter-spacing: 0.06em; }
+  .grp { font-style: normal; font-weight: 700; opacity: 0.55; letter-spacing: 0.14em; }
+  .val { font: 500 max(6px, 0.95cqw)/1 ui-monospace, Menlo, Consolas, monospace; font-style: normal; opacity: 0.95; }
   .mk { cursor: ns-resize; touch-action: none; }
   .mk::after { content: ""; position: absolute; left: 50%; top: 9%; width: 0.22cqw; height: 34%; background: currentColor;
     border-radius: 0.2cqw; transform-origin: 50% 120%; transform: translateX(-50%) rotate(var(--a, 0deg)); color: #e8e9eb; }
-  .mk.c::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; background: rgba(0,0,0,.25); }
-  .vfader { position: absolute; margin: 0; width: 2.4cqw; height: auto; padding: 0; }
+  .mk::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; background: rgba(0,0,0,.25); }
+  .mk:hover { box-shadow: 0 0 0 0.15cqw var(--accent); }
+  .vfader { position: absolute; margin: 0; width: 2.4cqw; padding: 0; }
   .vfader::-webkit-slider-runnable-track { width: 0.55cqw; }
-  .vfader::-webkit-slider-thumb { width: 2.2cqw; height: 1.25cqw; margin-left: -0.82cqw; }
+  .vfader::-webkit-slider-thumb { width: 2.4cqw; height: 1.3cqw; margin-left: -0.92cqw; }
   .fk.mute.on { background: linear-gradient(#e0574b, #b8332a); color: #fff; }
-  .fk.page.on { box-shadow: 0 0 0 0.25cqw var(--accent) inset; }
-  .fk .sub { display: block; font-size: 0.72em; font-weight: 600; opacity: 0.8; font-style: normal; margin-top: 0.2em; }
+
+  /* la cinta con rotulador, como en MESA 101 */
+  .cinta { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; isolation: isolate;
+    padding: 0 0.6cqw; transform: translate(-50%, -50%) rotate(var(--giro, -1deg)); white-space: nowrap; overflow: hidden;
+    font: 400 1.25cqw/1 'Permanent Marker', 'Marker Felt', cursive; color: #16130f; cursor: text; outline: none;
+    filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,.5)) drop-shadow(2px 3px 3px rgba(0,0,0,.4)); }
+  .cinta::before { content: ""; position: absolute; inset: 0; z-index: -1;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.055) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.045) 0 1px, transparent 1px 3px), #efece4;
+    clip-path: polygon(0 8%, 2% 0, 4% 9%, 6% 2%, 94% 0, 96% 8%, 98% 1%, 100% 7%, 99% 50%, 100% 94%, 98% 100%, 96% 93%, 94% 100%, 6% 98%, 4% 92%, 2% 100%, 0 93%, 1% 50%); }
+  .cinta:focus::before { outline: 0.15cqw solid var(--accent); outline-offset: -0.15cqw; }
+  .cinta.vacia { filter: none; transform: translate(-50%, -50%); font: 600 0.62cqw/1 system-ui, sans-serif; letter-spacing: 0.08em;
+    color: #9aa0a8; border: 0.1cqw dashed #6b7078; border-radius: 0.3cqw; }
+  .cinta.vacia::before { display: none; }
+  .cinta.vacia:empty::after { content: "PEGAR CINTA"; }
 </style>
 </head>
 <body>
@@ -57,12 +89,12 @@
   </div>
 </main>
 <script>
-  // ---- placing, as in the emulator: centres and sizes in faceplate units (1700 x 1000) ----
+  // ---- colocar, como en el emulador: centros y tamaños en unidades de la carcasa (1700 x 1000) ----
   const FW = 1700, FH = 1000;
   const face = document.getElementById('face');
   const place = (el, cx, cy, w, h) => {
     Object.assign(el.style, { left: cx / FW * 100 + '%', top: cy / FH * 100 + '%', width: w / FW * 100 + '%',
-      height: h / FH * 100 + '%', transform: 'translate(-50%, -50%)' });
+      height: h / FH * 100 + '%', transform: el.style.transform || 'translate(-50%, -50%)' });
     face.appendChild(el);
     return el;
   };
@@ -75,125 +107,214 @@
     face.appendChild(s);
     return s;
   };
-  const key = (label, cx, cy, w, h, cls, onClick) => {
+  // La ayuda de cada control va en la pantalla verde mientras el mouse está encima.
+  const explain = (el, msg) => {
+    el.addEventListener('pointerenter', () => setHelp(typeof msg === 'function' ? msg() : msg));
+    el.addEventListener('pointerleave', () => setHelp(''));
+    return el;
+  };
+  const key = (label, cx, cy, w, h, cls, onClick, help, shortcut) => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'fk ' + (cls || ''); b.innerHTML = label;
+    b.type = 'button'; b.className = 'fk ' + (cls || '');
+    b.innerHTML = label + (shortcut ? `<span class="kb">${shortcut}</span>` : '');
     if (onClick) b.addEventListener('click', onClick);
+    if (help) explain(b, help);
     return place(b, cx, cy, w, h);
   };
 
-  // ---- sample data (nothing here talks to a device) ----
+  // ---- datos de muestra (nada de esto habla con un aparato) ----
   const PAGES = [
-    { id: 'song1', label: 'SONG<span class="sub">1–8</span>', parts: [0, 1, 2, 3, 4, 5, 6, 7], lcd: 'SONG 1-8' },
-    { id: 'song2', label: 'SONG<span class="sub">9–16</span>', parts: [8, 9, 10, 11, 12, 13, 14, 15], lcd: 'SONG 9-16' },
-    { id: 'patt', label: 'PATT<span class="sub">D1–C4</span>', parts: [16, 17, 18, 19, 20, 21, 22, 23], lcd: 'PATTERN' },
+    { label: 'CANCIÓN 1–8', sub: 'canales 1–8', parts: [0, 1, 2, 3, 4, 5, 6, 7], lcd: 'Canción 1–8' },
+    { label: 'CANCIÓN 9–16', sub: 'canales 9–16', parts: [8, 9, 10, 11, 12, 13, 14, 15], lcd: 'Canción 9–16' },
+    { label: 'PATRÓN', sub: 'pistas D1–C4', parts: [16, 17, 18, 19, 20, 21, 22, 23], lcd: 'Patrón D1–C4' },
   ];
   const PATT = ['D1', 'D2', 'PC', 'BA', 'C1', 'C2', 'C3', 'C4'];
-  const NAMES = { 0: 'DRUMBRUTE', 2: 'RIDDIM', 3: 'MINITAUR', 4: 'VOLCA KEYS', 5: 'LEMONDROP',
-    16: 'DRUMBRUTE', 18: 'RIDDIM', 19: 'MINITAUR', 20: 'VOLCA KEYS', 21: 'LEMONDROP' };
+  const SKINS = [['dark', 'OSCURA'], ['aero', 'AERO'], ['kawaii', 'KAWAII'], ['terminal', 'TERMINAL'], ['vintage', 'VINTAGE'], ['synthwave', 'SYNTHWAVE']];
+  const DEFAULTS = { pan: 64, rev: 40, cho: 0, vari: 0, dry: 127, vol: 100 };
   const state = Array.from({ length: 24 }, (_, p) => ({
     vol: [100, 92, 110, 96, 88, 104, 80, 74][p % 8], pan: [64, 50, 64, 64, 78, 40, 64, 90][p % 8],
     rev: [20, 40, 10, 30, 64, 70, 40, 52][p % 8], cho: [0, 0, 20, 0, 40, 30, 0, 10][p % 8],
-    vari: 0, mute: [0, 2, 3, 4, 5].includes(p),
+    vari: 0, dry: 127, mute: [0, 2, 3, 4, 5].includes(p),
   }));
-  const SKINS = ['dark', 'aero', 'kawaii', 'terminal', 'vintage', 'synthwave'];
-  let page = 0, skin = 0, sel = 0, lastMsg = 'MAQUETA: NO MANDA MIDI';
+  let page = 0, skin = 0, sel = 0, help = '', last = 'Maqueta: no manda MIDI. Todo lo que ves es de muestra.';
 
-  // ---- the moulded body, as in the emulator ----
+  // las cintas: lo único que la maqueta guarda
+  const CINTAS_KEY = 'qy100-mixer.cintas';
+  const GIROS = [-1.6, 1.1, -0.7, 1.8, -1.2, 0.6, -1.9, 1.3];
+  let cintas = null;
+  try { cintas = JSON.parse(localStorage.getItem(CINTAS_KEY)); } catch { /* sin almacenamiento */ }
+  if (!cintas) cintas = { 0: 'DRUMBRUTE', 2: 'RIDDIM', 3: 'MINITAUR', 4: 'VOLCA KEYS', 5: 'LEMONDROP',
+    16: 'DRUMBRUTE', 18: 'RIDDIM', 19: 'MINITAUR', 20: 'VOLCA KEYS', 21: 'LEMONDROP' };
+  const saveCintas = () => { try { localStorage.setItem(CINTAS_KEY, JSON.stringify(cintas)); } catch { /* no se guarda */ } };
+  const who = (p) => cintas[p] || 'QY100';
+  const channelOf = (p) => (p < 16 ? p + 1 : p - 15);   // pistas de patrón: PATT OUT CH 1~8
+  const partName = (p) => (p < 16 ? 'parte ' + (p + 1) : 'pista ' + PATT[p - 16]);
+  const panText = (v) => (v === 0 ? 'RND' : v === 64 ? 'C' : v < 64 ? 'L' + (64 - v) : 'R' + (v - 64));
+
+  // ---- el cuerpo moldeado, como en el emulador ----
   deco('cap l', 22, 500, 44, 1000);
   deco('cap r', 1678, 500, 44, 1000);
   deco('lip', 850, 975, 1700, 50);
-  deco('groove', 850, 572, 1612, 3);
-  deco('well', 951, 776, 1344, 360);
-  place(document.getElementById('bezel'), 850, 272, 850, 500);
-  place(document.getElementById('lcdwin'), 850, 262, 800, 400);
-  text('<b>QY</b> MIXER', 850, 42, 34);
-  text('<span class="xg">QY100</span>', 1170, 497, 30);
-  text('maqueta', 520, 497, 22);
+  deco('groove', 850, 352, 1612, 3);
+  deco('well', 850, 664, 1612, 600);
+  place(document.getElementById('bezel'), 850, 148, 1000, 230);
+  place(document.getElementById('lcdwin'), 850, 146, 950, 180);
+  text('<b>QY</b> MIXER', 850, 22, 30);
+  text('<span class="xg">QY100</span>', 1270, 252, 26);
+  text('maqueta', 440, 252, 20);
 
-  // ---- left column: the three pages (like SONG / PATTERN), and two lights ----
-  const ledOut = deco('fled green on', 120, 105, 30, 30);
-  text('MIDI', 180, 105, 22);
-  const ledSend = deco('fled', 120, 165, 30, 30);
-  text('SEND', 182, 165, 22);
-  const pageKeys = PAGES.map((p, i) => key(p.label, 150, 270 + i * 95, 160, 78, 'page', () => { page = i; sel = 0; render(); }));
+  // ---- arriba a la izquierda: dos luces con su nombre ----
+  const ledOut = deco('fled green on', 110, 110, 30, 30);
+  text('MIDI', 160, 110, 22);
+  const ledSend = deco('fled', 110, 165, 30, 30);
+  text('ENVÍO', 168, 165, 22);
+  explain(ledOut, 'Luz MIDI: verde = hay salida hacia el QY100 (L6max MIDI I/O).');
+  explain(ledSend, 'Luz ENVÍO: parpadea cada vez que sale algo hacia el QY100.');
 
-  // ---- right: F keys with their job written on them, and a big SEND ALL in the ring ----
-  key('PULL<span class="sub">read QY</span>', 1325, 130, 110, 66, 'sm', () => flash('PULL: NEEDS MIDI IN'));
-  key('MIDI<span class="sub">port</span>', 1325, 232, 110, 66, 'sm', () => flash('OUT: L6MAX MIDI I/O'));
-  key('LOOK<span class="sub">skin</span>', 1325, 334, 110, 66, 'sm', () => { skin = (skin + 1) % SKINS.length;
-    document.documentElement.dataset.skin = SKINS[skin]; if (!skin) delete document.documentElement.dataset.skin; flash('LOOK: ' + SKINS[skin]); });
-  key('NAMES<span class="sub">edit</span>', 1325, 436, 110, 66, 'sm', () => flash('NAMES: EDIT ON THE STRIP'));
-  deco('ring', 1530, 300, 260, 260);
-  key('SEND<br>ALL', 1530, 300, 170, 170, 'round', () => {
-    ledSend.classList.add('on'); setTimeout(() => ledSend.classList.remove('on'), 400); flash('SENT 168 VALUES'); });
-  text('every strip, every page', 1530, 455, 20);
+  // ---- arriba a la derecha: ENVIAR TODO, grande ----
+  deco('ring', 1530, 150, 250, 250);
+  key('ENVIAR<br>TODO', 1530, 150, 170, 170, 'round', () => sendAll(),
+    'ENVIAR TODO: manda las 24 tiras al QY100. Úsalo al prenderlo o después de cambiar de patrón.', 'E');
 
-  // ---- the strips, in the well ----
-  const X0 = 370, PITCH = 166;
-  const stripEls = [];
-  function knob(cx, cy, d, get, set, label) {
-    const k = deco('ring mk c', cx, cy, d, d);
-    text(label, cx, cy + d / 2 + 14, 15);
+  // ---- segunda fila: páginas a la izquierda, acciones a la derecha ----
+  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 210 + i * 230, 310, 210, 62, 'page wide',
+    () => { page = i; sel = 0; render(); },
+    i < 2 ? `${p.label}: las partes del modo canción, una por canal MIDI (${p.sub}).`
+      : 'PATRÓN: las 8 pistas del modo patrón (D1–C4). Salen por los canales 1–8 con PATT OUT CH 1~8.', String(i + 1)));
+  key('LEER DEL QY<span class="sub">esta página</span>', 1090, 310, 200, 62, 'wide', () => say('Leer: necesita el cable de vuelta (MIDI IN). En la maqueta no hace nada.'),
+    'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página. Necesita el cable de vuelta (MIDI IN).', 'L');
+  key('PUERTO MIDI<span class="sub">L6max MIDI I/O</span>', 1310, 310, 220, 62, 'wide', () => say('Puerto: aquí se elegirá la salida hacia el QY100.'),
+    'PUERTO MIDI: la salida que llega al QY100. Hoy, la Zoom (L6max MIDI I/O).');
+  const skinKey = key('PIEL<span class="sub">OSCURA</span>', 1530, 310, 180, 62, 'wide', () => {
+    skin = (skin + 1) % SKINS.length;
+    if (skin) document.documentElement.dataset.skin = SKINS[skin][0]; else delete document.documentElement.dataset.skin;
+    skinKey.querySelector('.sub').textContent = SKINS[skin][1];
+    say('Piel: ' + SKINS[skin][1]);
+  }, 'PIEL: cambia el aspecto. No toca nada del QY100.', 'P');
+
+  // ---- las 8 tiras ----
+  const X0 = 166, PITCH = 195.5;
+  const strips = [];
+  const dimList = Array.from({ length: 8 }, () => []);
+  function knob(cx, cy, d, label, field, i, helpText, fmt = (v) => String(v)) {
+    const k = deco('ring mk', cx, cy, d, d);
+    const lab = text(label, cx, cy + d / 2 + 13, 15);
+    const val = text('', cx, cy + d / 2 + 30, 0, 'val');
+    dimList[i].push(k, lab, val);
+    const P = () => PAGES[page].parts[i];
+    const paint = () => { const v = state[P()][field]; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); val.textContent = fmt(v); };
+    const set = (v) => { state[P()][field] = Math.max(0, Math.min(127, Math.round(v))); sel = i; paint(); paintSel(); };
     let y0 = 0, v0 = 0;
-    const paint = () => k.style.setProperty('--a', (get() / 127 * 270 - 135) + 'deg');
-    k.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = get(); k.setPointerCapture(e.pointerId); });
-    k.addEventListener('pointermove', (e) => { if (!k.hasPointerCapture(e.pointerId)) return;
-      set(Math.max(0, Math.min(127, Math.round(v0 + (y0 - e.clientY) * 0.8)))); paint(); drawLcd(); });
-    paint();
+    k.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = state[P()][field]; k.setPointerCapture(e.pointerId); });
+    k.addEventListener('pointermove', (e) => { if (k.hasPointerCapture(e.pointerId)) { set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); } });
+    k.addEventListener('wheel', (e) => { e.preventDefault(); set(state[P()][field] - Math.sign(e.deltaY)); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); }, { passive: false });
+    k.addEventListener('dblclick', () => { set(DEFAULTS[field]); say(`${label} de la ${partName(P())} a ${fmt(DEFAULTS[field])} (de fábrica).`); });
+    explain(k, () => helpText(P()) + '. Arrastra arriba o abajo (Shift = fino), o usa la rueda. Doble clic: ' + fmt(DEFAULTS[field]) + '.');
     return paint;
   }
   for (let i = 0; i < 8; i++) {
     const cx = X0 + i * PITCH;
-    const s = { num: text('', cx, 608, 0, 'strip-num'), name: text('', cx, 636, 15, 'strip-name') };
     const P = () => PAGES[page].parts[i];
+    const s = {};
+    s.bg = deco('strip-bg', cx, 664, 186, 588);
+    s.bg.addEventListener('pointerdown', () => { sel = i; paintSel(); });
+    s.num = text('', cx, 392, 0, 'strip-num');
+    s.sub = text('', cx, 424, 14, 'strip-sub');
+    text('ENVÍOS', cx, 452, 13, 'grp');
     s.knobs = [
-      knob(cx - 36, 690, 50, () => state[P()].pan, (v) => { state[P()].pan = v; }, 'PAN'),
-      knob(cx + 36, 690, 50, () => state[P()].rev, (v) => { state[P()].rev = v; }, 'REV'),
-      knob(cx - 36, 764, 50, () => state[P()].cho, (v) => { state[P()].cho = v; }, 'CHO'),
-      knob(cx + 36, 764, 50, () => state[P()].vari, (v) => { state[P()].vari = v; }, 'VAR'),
+      knob(cx - 44, 494, 52, 'REV', 'rev', i, (p) => `Envío a REVERB de la ${partName(p)}`),
+      knob(cx + 44, 494, 52, 'CHO', 'cho', i, (p) => `Envío a CHORUS de la ${partName(p)}`),
+      knob(cx - 44, 594, 52, 'VAR', 'vari', i, (p) => `Envío a VARIACIÓN de la ${partName(p)}`),
+      knob(cx + 44, 594, 52, 'DRY', 'dry', i, (p) => `DRY: la señal sin efectos de la ${partName(p)}`),
+      knob(cx - 44, 690, 52, 'PAN', 'pan', i, (p) => `PANEO de la ${partName(p)} (C = centro, RND = al azar)`, panText),
     ];
+    s.mute = key('MUTE', cx + 44, 690, 76, 52, 'sm mute', () => {
+      const st = state[P()]; st.mute = !st.mute; sel = i; render();
+      say(P() < 16
+        ? (st.mute ? `MUTE canal ${channelOf(P())}: el QY100 ya no lo toca; ${who(P())} sigue sonando.` : `Canal ${channelOf(P())} de vuelta en el QY100.`)
+        : (st.mute ? `MUTE ${PATT[P() - 16]}: volumen 0.` : `${PATT[P() - 16]}: volumen de vuelta.`));
+    }, () => (P() < 16
+      ? `MUTE: el QY100 deja de tocar lo que entra por el canal ${channelOf(P())}; ${who(P())} sigue sonando. Se pierde al apagar el QY100: ENVIAR TODO.`
+      : `MUTE: volumen 0 en la pista ${PATT[P() - 16]}. Ojo: el QY100 puede pasarlo como CC 7 y bajar también ${who(P())}.`));
     const f = document.createElement('input');
     f.type = 'range'; f.min = 0; f.max = 127; f.className = 'vfader';
-    f.addEventListener('input', () => { state[P()].vol = Number(f.value); sel = i; s.val.textContent = f.value; drawLcd(); });
-    place(f, cx - 38, 878, 40, 118);
+    f.addEventListener('input', () => { state[P()].vol = Number(f.value); sel = i; s.vol.textContent = f.value; paintSel(); setHelp(`VOLUMEN de la ${partName(P())} → ${f.value}`); });
+    f.addEventListener('dblclick', () => { state[P()].vol = DEFAULTS.vol; render(); say(`Volumen de la ${partName(P())} a 100 (de fábrica).`); });
+    explain(f, () => `VOLUMEN de la ${partName(P())}, de 0 a 127. Doble clic: 100.`);
+    place(f, cx - 34, 854, 44, 120);
     s.fader = f;
-    s.val = text('', cx - 38, 946, 16);
-    s.mute = key('MUTE', cx + 34, 912, 70, 46, 'sm mute', () => { const st = state[P()]; st.mute = !st.mute; sel = i; render(); });
-    s.led = deco('fled', cx + 34, 866, 18, 18);
-    stripEls.push(s);
+    s.vol = text('', cx - 34, 930, 0, 'val');
+    const volLab = text('VOL', cx - 34, 780, 13, 'grp');
+    dimList[i].push(f, s.vol, volLab);
+    // la cinta
+    const c = document.createElement('div');
+    c.className = 'cinta'; c.contentEditable = 'plaintext-only'; c.spellcheck = false;
+    c.setAttribute('role', 'textbox');
+    c.style.setProperty('--giro', GIROS[i] + 'deg');
+    c.style.transform = 'translate(-50%, -50%) rotate(var(--giro))';
+    place(c, cx + 34, 870, 112, 40);
+    const paintCinta = () => {
+      const empty = !c.textContent && document.activeElement !== c;
+      c.classList.toggle('vacia', empty);
+      c.style.transform = empty ? 'translate(-50%, -50%)' : 'translate(-50%, -50%) rotate(var(--giro))';
+      c.style.fontSize = '';
+      if (empty) return;
+      for (let t = 1.25; t >= 0.6; t -= 0.05) { c.style.fontSize = t + 'cqw'; if (c.scrollWidth <= c.clientWidth) break; }
+    };
+    c.addEventListener('focus', () => { sel = i; paintSel(); paintCinta(); setHelp('Escribe el nombre del sinte de este canal (hasta 12 letras). Enter guarda, Esc cancela.'); });
+    c.addEventListener('input', () => { if (c.textContent.length > 12 || /\n/.test(c.textContent)) c.textContent = c.textContent.replace(/\n/g, ' ').slice(0, 12); paintCinta(); });
+    c.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); c.blur(); } if (e.key === 'Escape') { c.textContent = cintas[P()] || ''; c.blur(); } });
+    c.addEventListener('blur', () => {
+      const t = c.textContent.trim().toUpperCase(); c.textContent = t;
+      if (t) cintas[P()] = t; else delete cintas[P()];
+      saveCintas(); paintCinta(); render(); say(t ? `Cinta de la ${partName(P())}: ${t}.` : `Cinta de la ${partName(P())} despegada.`);
+    });
+    explain(c, () => (cintas[P()] ? `Cinta: ${cintas[P()]}. Haz clic para cambiar el nombre.` : 'Haz clic para escribir qué sinte va en este canal.'));
+    s.cinta = c; s.paintCinta = paintCinta;
+    strips.push(s);
   }
 
-  // ---- drawing ----
+  // ---- pintar ----
+  function setHelp(t) { help = t; drawLcd(); }
+  function say(t) { last = t; drawLcd(); }
   function drawLcd() {
-    const pg = PAGES[page];
-    const cols = pg.parts.map((p, i) => {
-      const st = state[p];
-      const label = p < 16 ? String(p + 1).padStart(2, '0') : PATT[p - 16];
-      return `<div class="col${st.mute ? ' m' : ''}${i === sel ? ' sel' : ''}"><div class="meter"><i style="height:${st.vol / 127 * 100}%"></i></div>`
-        + `<span class="num">${label}</span><span class="mflag">${st.mute ? 'M' : ''}</span></div>`;
-    }).join('');
-    const p = pg.parts[sel], st = state[p];
-    const who = (NAMES[p] || 'QY100');
+    const pg = PAGES[page], p = pg.parts[sel], st = state[p];
+    const where = p < 16 ? `Canal ${p + 1}` : `Pista ${PATT[p - 16]} · canal ${p - 15}`;
+    const idle = `${where} · ${who(p)} · vol ${st.vol} · pan ${panText(st.pan)}${st.mute ? ' · MUTE' : ''}`;
     document.getElementById('mixlcd').innerHTML =
-      `<div class="top"><span class="pill">MIX</span><span>${pg.lcd}</span><span class="grow"></span><span>OUT L6MAX</span></div>`
-      + `<div class="bars">${cols}</div>`
-      + `<div class="msg"><span>${p < 16 ? 'PART ' + (p + 1) : PATT[p - 16]} ${who} VOL${String(st.vol).padStart(3, ' ')}</span><span>${lastMsg}</span></div>`;
+      `<div class="top"><span class="pill">MIX</span><span>${pg.lcd}</span><span class="grow"></span><span><i class="dot on"></i>Salida: L6max MIDI I/O</span></div>`
+      + `<div class="help">${help || idle}</div>`
+      + `<div class="last"><span>${last}</span></div>`;
   }
-  function flash(msg) { lastMsg = msg; drawLcd(); }
+  function paintSel() { strips.forEach((s, i) => s.bg.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
     pageKeys.forEach((k, i) => k.classList.toggle('on', i === page));
     PAGES[page].parts.forEach((p, i) => {
-      const s = stripEls[i], st = state[p];
+      const s = strips[i], st = state[p];
       s.num.textContent = p < 16 ? String(p + 1) : PATT[p - 16];
-      s.name.textContent = NAMES[p] || 'QY100';
-      s.fader.value = st.vol; s.val.textContent = st.vol;
+      s.sub.textContent = p < 16 ? 'CANAL ' + (p + 1) : 'CANAL ' + (p - 15);
+      s.fader.value = st.vol; s.vol.textContent = st.vol;
       s.knobs.forEach((paint) => paint());
-      s.mute.classList.toggle('on', st.mute); s.led.classList.toggle('on', st.mute);
-      s.mute.title = p < 16 ? 'Rcv Channel Off: the QY stops doubling the synth on this channel' : 'Volume 0 on this pattern track';
+      s.mute.classList.toggle('on', st.mute);
+      dimList[i].forEach((el) => { el.style.opacity = st.mute ? '0.45' : ''; });
+      if (document.activeElement !== s.cinta) s.cinta.textContent = cintas[p] || '';
+      s.paintCinta();
     });
-    drawLcd();
+    paintSel();
   }
+  function sendAll() {
+    ledSend.classList.add('on'); setTimeout(() => ledSend.classList.remove('on'), 400);
+    say('Enviado: 24 tiras, 168 valores (en la maqueta, de mentira).');
+  }
+  // atajos: 1-3 páginas, E enviar todo, L leer, P piel
+  addEventListener('keydown', (e) => {
+    if (e.target.isContentEditable || e.metaKey || e.ctrlKey) return;
+    const k = e.key.toLowerCase();
+    if (k >= '1' && k <= '3') pageKeys[Number(k) - 1].click();
+    else if (k === 'e') sendAll();
+    else if (k === 'p') skinKey.click();
+  });
+  document.fonts.ready.then(render);
   render();
 </script>
 </body>
