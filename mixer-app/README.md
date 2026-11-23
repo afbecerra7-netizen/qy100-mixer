@@ -39,6 +39,13 @@ newest one for the same control. SEND ALL sends only what the app knows (read or
 READ asks for each part's block (`F0 43 20 4C 08 pp 00 F7`), the three effect blocks and the
 system block, and falls back to one XG Parameter Request (`F0 43 30 4C …`) per value.
 
+**Over TO HOST it sends but cannot read** `[M]` (2026-11-23, `HOST SELECT = PC-2`, `puente_host.py`
+at 38,400): XG Parameter Changes get in (XG Display Data showed on the QY100's screen), but no XG
+request is answered — dump or parameter, with or without bulk mode — while the QY100's own
+sequencer request (`dump setup`, model `5F`) answers inside bulk mode. READ says so. Reading
+needs MIDI: the console reads XG over MIDI. And **one bridge per cable**: two `puente_host.py`
+on the same serial port share out the incoming bytes, and replies go missing.
+
 ## Checking it without a device
 
 `pruebas/qy_falso.py` is a pretend QY100 on two virtual CoreMIDI ports; `pruebas/recorrido.js`

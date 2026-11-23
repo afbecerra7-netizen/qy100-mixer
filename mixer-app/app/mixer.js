@@ -18,6 +18,11 @@
 // survive a power cycle (hence SEND ALL). VOL 0 (Pattern) is volume 0, keeping the volume it had.
 //
 // A value that has been neither read from the QY100 nor sent to it is shown as «—», as in MESA 101.
+//
+// [M] 2026-11-23, HOST SELECT = PC-2 through puente_host.py: over TO HOST the QY100 TAKES XG
+// Parameter Changes (XG Display Data showed on its screen) but answers NO XG request, dump or
+// parameter, with or without bulk mode; its own sequencer requests (model 5F) do answer, inside
+// bulk mode. So over TO HOST the mixer can send but not read, and READ says so.
 
 import { buildParameterChange, buildParameterRequest, buildBulkDumpRequest } from './consola/sysex.js';
 import { MidiLink } from './consola/midi.js';
@@ -60,8 +65,8 @@ const I18N = {
       ledPuerto: 'Luz PUERTO: ámbar = sin salida MIDI; verde = hay salida abierta hacia el QY100.',
       ledEnvio: 'Luz ENVÍO: parpadea cada vez que algo sale hacia el QY100.',
       sendAll: 'ENVIAR TODO: manda al QY100 todo lo que la app conoce de las 24 tiras (voz, volumen, efectos y el botón QY) y los efectos. Lo que está en «—» no se manda. Úsalo al prenderlo o después de cambiar de patrón.',
-      leer: 'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página y de los efectos. Necesita una ENTRADA MIDI con el cable de vuelta (MIDI OUT del QY100).',
-      puerto: 'PUERTO MIDI: la salida que llega al QY100 (en el estudio, la Zoom: L6max MIDI I/O; o «QY100 TO HOST» con puente_host.py) y, para LEER, la entrada que trae su respuesta.',
+      leer: 'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página y de los efectos. Necesita una ENTRADA MIDI con el cable de vuelta (MIDI OUT del QY100). Por TO HOST no funciona: el QY100 no contesta lecturas XG por ahí.',
+      puerto: 'PUERTO MIDI: la salida que llega al QY100 (en el estudio, la Zoom: L6max MIDI I/O; o «QY100 TO HOST» con puente_host.py, que manda pero no lee) y, para LEER, la entrada que trae su respuesta.',
       perilla: (txt, def) => `${txt}. Arrastra arriba o abajo (Shift = fino), rueda o flechas. Doble clic: ${def}.`,
       cabCancion: (n) => `Parte ${n} del modo canción: recibe por el canal MIDI ${n}.`,
       cabPatron: (t, rol, ch) => `Pista ${t} del patrón (${rol}): sale por el canal ${ch}.`,
@@ -81,6 +86,7 @@ const I18N = {
       leerSinSalida: 'Leer necesita también la SALIDA hacia el QY100: elígela en PUERTO MIDI.',
       leido: (pg, n, f) => `Leído ${pg}: ${n} valores${f ? `, ${f} sin respuesta` : ''}.`,
       nadaLeido: 'El QY100 no contestó. Revisa la ENTRADA MIDI y los dos cables (el de ida y el de vuelta).',
+      nadaLeidoHost: 'Por TO HOST el QY100 recibe los cambios pero no contesta las lecturas XG. Para LEER, usa MIDI.',
       valor: (lab, q, v) => `${lab} de la ${q}: ${v}.`,
       fabrica: (lab, q, v) => `${lab} de la ${q} a ${v} (de fábrica).`,
       qyOn: (ch) => `Canal ${ch}: el QY100 vuelve a sonar.`,
@@ -128,8 +134,8 @@ const I18N = {
       ledPuerto: 'PORT light: amber = no MIDI output; green = an output to the QY100 is open.',
       ledEnvio: 'SEND light: blinks every time something goes out to the QY100.',
       sendAll: 'SEND ALL: sends the QY100 everything the app knows about the 24 strips (voice, volume, effects and the QY button) and the effects. Anything at «—» is not sent. Use it after switching it on or changing pattern.',
-      leer: "READ FROM QY: brings the values of this page's 8 strips and of the effects from the QY100. Needs a MIDI INPUT with the return cable (the QY100's MIDI OUT).",
-      puerto: 'MIDI PORT: the output that reaches the QY100 (in the studio, the Zoom: L6max MIDI I/O; or «QY100 TO HOST» with puente_host.py) and, for READ, the input that brings its answer.',
+      leer: "READ FROM QY: brings the values of this page's 8 strips and of the effects from the QY100. Needs a MIDI INPUT with the return cable (the QY100's MIDI OUT). Not over TO HOST: the QY100 answers no XG read there.",
+      puerto: 'MIDI PORT: the output that reaches the QY100 (in the studio, the Zoom: L6max MIDI I/O; or «QY100 TO HOST» with puente_host.py, which sends but cannot read) and, for READ, the input that brings its answer.',
       perilla: (txt, def) => `${txt}. Drag up or down (Shift = fine), wheel or arrows. Double-click: ${def}.`,
       cabCancion: (n) => `Song mode part ${n}: receives on MIDI channel ${n}.`,
       cabPatron: (t, rol, ch) => `Pattern track ${t} (${rol}): goes out on channel ${ch}.`,
@@ -149,6 +155,7 @@ const I18N = {
       leerSinSalida: 'Read also needs the OUTPUT to the QY100: choose it under MIDI PORT.',
       leido: (pg, n, f) => `Read ${pg}: ${n} values${f ? `, ${f} with no answer` : ''}.`,
       nadaLeido: 'The QY100 did not answer. Check the MIDI INPUT and both cables (out and back).',
+      nadaLeidoHost: 'Over TO HOST the QY100 takes changes but answers no XG read. To READ, use MIDI.',
       valor: (lab, q, v) => `${lab} for ${q}: ${v}.`,
       fabrica: (lab, q, v) => `${lab} for ${q} back to ${v} (factory).`,
       qyOn: (ch) => `Channel ${ch}: the QY100 plays again.`,
@@ -444,7 +451,7 @@ async function leerPagina() {
     leyendo = false; readKey.disabled = false; readKey.innerHTML = `${L.leer}<span class="sub">${L.leerSub}</span><span class="kb">L</span>`;
   }
   pintaFx.forEach((f) => f()); render(); guardar();
-  say(got ? L.s.leido(PAGES[page].label, got, faltan) : L.s.nadaLeido);
+  say(got ? L.s.leido(PAGES[page].label, got, faltan) : /TO HOST/i.test(link.input?.name || '') ? L.s.nadaLeidoHost : L.s.nadaLeido);
 }
 
 let enviandoTodo = false;
