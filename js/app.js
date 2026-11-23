@@ -15,6 +15,7 @@ import { isStandardMidiFile, unwrapMidiFile, convertMidiToQySong } from './smf.j
 import { splitSysex, listDumpItems, itemLabel, buildItemTransfer, setTrackPartMode, exportSongToMidi, isDataFilerBulkFile, extractBulkFileMessages, isQyDataBlock, unpackQyBlock, retargetBlock, blockKind, blockModel, QY_KIND_SONG, QY_KIND_PATTERN } from './qysong.js';
 import { buildQ1a, parseQ1a, buildBlk, orderForRestore, buildClearAllCommand, isQ1aFile, q1ItemFileKind, buildQ1Item, parseQ1Item } from './qyfiles.js';
 import { detectQyModel, enterBulkMode, exitBulkMode, readMemoryList, buildClearCommand, formatTenths } from './qydevice.js';
+import { initMixer } from './mixer.js';
 
 const link = new MidiLink();
 let voices = [];
@@ -8510,4 +8511,26 @@ updateDataFilerPullNumberVisibility();
   renderParamPanel();
   renderGraphicsLibrary();
   renderDataFilerList();
+  // Mixer tab (mixer.js): eight Multi Part strips at a time, sharing paramState.
+  const mixer = initMixer(el('mixer-root'), {
+    link,
+    getSection: () => parameters.multiPart,
+    getStore: (part) => getParamStore('multiPart', String(part)),
+    onPartChanged: refreshIfViewingPart,
+    setStatus: (text) => { statusEl.textContent = text; },
+    pull: async (parts) => {
+      if (!requirePullInput('Pull Mixer')) return null;
+      return withPullButtons(async () => {
+        const total = { got: 0, missing: 0 };
+        for (const part of parts) {
+          const r = await pullSectionContext('multiPart', { part });
+          total.got += r.got;
+          total.missing += r.missing;
+          refreshIfViewingPart(part);
+        }
+        return total;
+      });
+    },
+  });
+  document.querySelector('.main-tab[data-tab="mixer"]').addEventListener('click', () => mixer.render());
 })();

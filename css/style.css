@@ -3306,3 +3306,87 @@ section {
   padding-left: 0.6rem;
   padding-right: 0.6rem;
 }
+
+/* ---- Mixer (mixer.js) ---- */
+.mixer-intro {
+  margin: 0 0 12px;
+  font-size: 0.85em;
+  opacity: 0.8;
+  max-width: 70ch;
+}
+.mixer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.mixer-page.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.mixer-spacer { flex: 1; }
+.mixer-strips {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(72px, 1fr));
+  gap: 6px;
+  overflow-x: auto;
+}
+.mixer-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: var(--panel);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 8px;
+  min-width: 72px;
+}
+.mixer-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+.mixer-part {
+  font-weight: 700;
+  font-size: 1.05em;
+  color: var(--accent-text);
+}
+.mixer-name {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.72em;
+  text-align: center;
+  padding: 2px;
+}
+.mixer-strip .knob-wrap { margin: 0; }
+.mixer-strip .reset-btn { display: none; }
+.mixer-strip .knob-controls { justify-content: center; }
+.mixer-strip .knob-value { width: 3.2em; padding: 1px 2px; font-size: 0.8em; text-align: center; }
+.mixer-page:not(.active) { opacity: 0.5; }
+.mixer-fader {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: 140px;
+  width: 28px;
+  margin: 6px 0 0;
+  accent-color: var(--accent);
+}
+.mixer-readout {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8em;
+}
+.mixer-mute {
+  width: 100%;
+  font-size: 0.75em;
+  font-weight: 700;
+}
+.mixer-mute.on {
+  background: #b8433f;
+  border-color: #b8433f;
+  color: #fff;
+}

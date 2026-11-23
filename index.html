@@ -181,6 +181,7 @@ Note: 'Blank' section only applies in Song Mode.">i</button>
 <main>
   <div id="main-tabs" role="tablist">
     <button type="button" class="main-tab active" data-tab="voice-parameters" role="tab" aria-selected="true">Voice/Parameters</button>
+    <button type="button" class="main-tab" data-tab="mixer" role="tab" aria-selected="false">Mixer</button>
     <button type="button" class="main-tab" data-tab="data-filer" role="tab" aria-selected="false">Data Filer</button>
     <button type="button" class="main-tab" data-tab="diagnostics" role="tab" aria-selected="false">Diagnostics + Raw SysEx</button>
     <button type="button" class="main-tab" data-tab="graphics" role="tab" aria-selected="false">Graphics</button>
@@ -379,6 +380,14 @@ Ds1 and Ds2 are sent as a normal parameter change. Ds3 must be sent as bulk data
     </div>
 
     <div id="param-list"></div>
+  </section>
+  </div>
+
+  <div class="tab-panel" id="tab-panel-mixer" role="tabpanel">
+  <section id="mixer">
+    <h2>Mixer</h2>
+    <p class="mixer-intro">Eight parts at a time, as on the QY100. Everything goes out as Part-addressed SysEx. On Song parts, MUTE turns the part's Rcv Channel off, so an external synth on that channel keeps playing and the QY stops doubling it. The QY forgets that at power off: press Send All.</p>
+    <div id="mixer-root"></div>
   </section>
   </div>
 
