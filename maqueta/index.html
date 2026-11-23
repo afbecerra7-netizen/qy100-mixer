@@ -47,26 +47,53 @@
   .fk.page.on { background: var(--accent); color: #fff; }
   .fk.wide { font-size: max(7px, 1.05cqw); }
 
-  /* --- las tiras --- */
-  .strip-bg { border-radius: 0.6cqw; background: rgba(255,255,255,.035); }
-  .strip-bg.sel { background: rgba(255,255,255,.09); box-shadow: inset 0 0 0 0.12cqw rgba(255,255,255,.18); }
-  .strip-num { font-size: max(9px, 2.3cqw); }
-  .strip-sub { font-style: normal; font-weight: 600; opacity: 0.7; letter-spacing: 0.06em; }
-  .grp { font-style: normal; font-weight: 700; opacity: 0.55; letter-spacing: 0.14em; }
-  .val { font: 500 max(6px, 0.95cqw)/1 ui-monospace, Menlo, Consolas, monospace; font-style: normal; opacity: 0.95; }
-  .mk { cursor: ns-resize; touch-action: none; }
+  /* --- las tiras: columnas que se ordenan solas, como en MESA 101 --- */
+  #tiras { position: absolute; display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.55cqw; padding: 0.55cqw; box-sizing: border-box; z-index: 1; }
+  .tira { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 0.45cqw; min-height: 0;
+    padding: 0.55cqw 0.5cqw 0.6cqw; border-radius: 0.6cqw; background: rgba(255,255,255,.04); }
+  .tira.sel { background: rgba(255,255,255,.085); box-shadow: inset 0 0 0 0.12cqw rgba(255,255,255,.2); }
+  .tira .fl { position: static; transform: none; pointer-events: auto; }
+  .tira .ring { position: relative; transform: none; }
+  .tira-cab { display: flex; align-items: baseline; gap: 0.6cqw; }
+  .tira-num { font-size: 2.3cqw !important; line-height: 1 !important; }
+  .tira-canal { font-style: normal !important; font-weight: 700 !important; font-size: 0.82cqw !important; letter-spacing: 0.12em; opacity: 0.65; }
+  .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.72cqw !important; letter-spacing: 0.16em; opacity: 0.55; }
+  .grp::after { content: ""; flex: 1; height: 0.08cqw; background: currentColor; opacity: 0.6; }
+  .perillas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35cqw 0.3cqw; }
+  .perilla { display: flex; flex-direction: column; align-items: center; gap: 0.25cqw; }
+  .mk { width: 2.7cqw; height: 2.7cqw; cursor: ns-resize; touch-action: none; }
   .mk::after { content: ""; position: absolute; left: 50%; top: 9%; width: 0.22cqw; height: 34%; background: currentColor;
     border-radius: 0.2cqw; transform-origin: 50% 120%; transform: translateX(-50%) rotate(var(--a, 0deg)); color: #e8e9eb; }
   .mk::before { content: ""; position: absolute; inset: 22%; border-radius: 50%; background: rgba(0,0,0,.25); }
-  .mk:hover { box-shadow: 0 0 0 0.15cqw var(--accent); }
-  .vfader { position: absolute; margin: 0; width: 2.4cqw; padding: 0; }
-  .vfader::-webkit-slider-runnable-track { width: 0.55cqw; }
-  .vfader::-webkit-slider-thumb { width: 2.4cqw; height: 1.3cqw; margin-left: -0.92cqw; }
+  .mk:hover, .mk:focus-visible { box-shadow: 0 0 0 0.15cqw var(--accent); outline: none; }
+  .p-nom { font-size: 0.85cqw !important; line-height: 1 !important; }
+  .val { font: 500 0.95cqw/1 ui-monospace, Menlo, Consolas, monospace !important; font-style: normal !important; font-variant-numeric: tabular-nums; }
+  .fila-pan { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 0.3cqw; }
+  .tira .fk { position: relative; transform: none; }
+  .tira .fk.mute { height: 3cqw; font-size: 0.95cqw; }
   .fk.mute.on { background: linear-gradient(#e0574b, #b8332a); color: #fff; }
+  .tira.muda .perilla, .tira.muda .fader { opacity: 0.45; }
+  /* el fader: escala a la izquierda, pista con tapa, valor abajo */
+  .fader { flex: 1; min-height: 0; display: grid; grid-template-columns: 2.2cqw 1fr; grid-template-rows: 1fr auto; touch-action: none; }
+  .fader-escala { position: relative; margin: 0.65cqw 0; }
+  .fader-escala span { position: absolute; right: 0.4cqw; transform: translateY(-50%); font: 500 0.72cqw/1 ui-monospace, Menlo, monospace; color: currentColor; opacity: 0.6; }
+  .fader-escala span.def { opacity: 1; }
+  .fader-escala span::after { content: ""; position: absolute; left: calc(100% + 0.25cqw); top: 50%; width: 0.6cqw; height: 0.08cqw; background: currentColor; }
+  .fader-pista { position: relative; cursor: ns-resize; margin: 0.65cqw 0; }
+  .fader-pista::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 0.55cqw; margin-left: -0.275cqw; border-radius: 0.3cqw;
+    background: var(--vt, linear-gradient(90deg, #08090a, #26282c)); box-shadow: var(--vtsh, inset 0 0 4px #000, 0 1px 0 rgba(255,255,255,.22)); }
+  .fader-tapa { position: absolute; left: 50%; width: 2.6cqw; height: 1.35cqw; margin: -0.675cqw 0 0 -1.3cqw; border-radius: 0.2cqw; border: 1px solid var(--vthbd, #111);
+    background: repeating-linear-gradient(0deg, transparent 0 0.4cqw, var(--ribs, rgba(0,0,0,.35)) 0.4cqw 0.47cqw), var(--vth, linear-gradient(90deg, #b9bcc3, #f2f3f5 45%, #9da0a8));
+    box-shadow: 0 0.15cqw 0.3cqw rgba(0,0,0,.6); }
+  .fader-pista:hover .fader-tapa, .fader-pista:focus-visible .fader-tapa { box-shadow: 0 0 0 0.15cqw var(--accent), 0 0.15cqw 0.3cqw rgba(0,0,0,.6); }
+  .fader-pista:focus-visible { outline: none; }
+  .fader-valor { grid-column: 2; justify-self: center; padding: 0.2cqw 0.5cqw; border-radius: 0.25cqw; background: rgba(0,0,0,.35);
+    font: 500 0.95cqw/1 ui-monospace, Menlo, monospace; color: #e8e9eb; font-variant-numeric: tabular-nums; }
+  .cinta-zona { height: 2.6cqw; display: flex; align-items: center; justify-content: center; }
 
   /* la cinta con rotulador, como en MESA 101 */
-  .cinta { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; isolation: isolate;
-    padding: 0 0.6cqw; transform: translate(-50%, -50%) rotate(var(--giro, -1deg)); white-space: nowrap; overflow: hidden;
+  .cinta { position: relative; box-sizing: border-box; display: flex; align-items: center; justify-content: center; isolation: isolate;
+    max-width: 100%; min-width: 60%; height: 2.3cqw; padding: 0 0.7cqw; transform: rotate(var(--giro, -1deg)); white-space: nowrap; overflow: hidden;
     font: 400 1.25cqw/1 'Permanent Marker', 'Marker Felt', cursive; color: #16130f; cursor: text; outline: none;
     filter: drop-shadow(1px 1px 0.5px rgba(0,0,0,.5)) drop-shadow(2px 3px 3px rgba(0,0,0,.4)); }
   .cinta::before { content: ""; position: absolute; inset: 0; z-index: -1;
@@ -74,7 +101,7 @@
       repeating-linear-gradient(90deg, rgba(0,0,0,.045) 0 1px, transparent 1px 3px), #efece4;
     clip-path: polygon(0 8%, 2% 0, 4% 9%, 6% 2%, 94% 0, 96% 8%, 98% 1%, 100% 7%, 99% 50%, 100% 94%, 98% 100%, 96% 93%, 94% 100%, 6% 98%, 4% 92%, 2% 100%, 0 93%, 1% 50%); }
   .cinta:focus::before { outline: 0.15cqw solid var(--accent); outline-offset: -0.15cqw; }
-  .cinta.vacia { filter: none; transform: translate(-50%, -50%); font: 600 0.62cqw/1 system-ui, sans-serif; letter-spacing: 0.08em;
+  .cinta.vacia { filter: none; transform: none; font: 600 0.75cqw/1 system-ui, sans-serif; letter-spacing: 0.12em;
     color: #9aa0a8; border: 0.1cqw dashed #6b7078; border-radius: 0.3cqw; }
   .cinta.vacia::before { display: none; }
   .cinta.vacia:empty::after { content: "PEGAR CINTA"; }
@@ -155,111 +182,131 @@
   deco('cap l', 22, 500, 44, 1000);
   deco('cap r', 1678, 500, 44, 1000);
   deco('lip', 850, 975, 1700, 50);
-  deco('groove', 850, 352, 1612, 3);
-  deco('well', 850, 664, 1612, 600);
-  place(document.getElementById('bezel'), 850, 148, 1000, 230);
-  place(document.getElementById('lcdwin'), 850, 146, 950, 180);
-  text('<b>QY</b> MIXER', 850, 22, 30);
-  text('<span class="xg">QY100</span>', 1270, 252, 26);
-  text('maqueta', 440, 252, 20);
+  deco('groove', 850, 282, 1612, 3);
+  deco('well', 850, 626, 1612, 668);
+  place(document.getElementById('bezel'), 850, 112, 1000, 196);
+  place(document.getElementById('lcdwin'), 850, 104, 950, 150);
+  text('<b>QY</b> MIXER', 175, 48, 34);
+  text('<span class="xg">QY100</span>', 1280, 196, 24);
+  text('maqueta', 430, 196, 18);
 
   // ---- arriba a la izquierda: dos luces con su nombre ----
-  const ledOut = deco('fled green on', 110, 110, 30, 30);
-  text('MIDI', 160, 110, 22);
-  const ledSend = deco('fled', 110, 165, 30, 30);
-  text('ENVÍO', 168, 165, 22);
+  const ledOut = deco('fled green on', 100, 115, 28, 28);
+  text('MIDI', 148, 115, 21);
+  const ledSend = deco('fled', 100, 165, 28, 28);
+  text('ENVÍO', 156, 165, 21);
   explain(ledOut, 'Luz MIDI: verde = hay salida hacia el QY100 (L6max MIDI I/O).');
   explain(ledSend, 'Luz ENVÍO: parpadea cada vez que sale algo hacia el QY100.');
 
   // ---- arriba a la derecha: ENVIAR TODO, grande ----
-  deco('ring', 1530, 150, 250, 250);
-  key('ENVIAR<br>TODO', 1530, 150, 170, 170, 'round', () => sendAll(),
+  deco('ring', 1530, 112, 205, 205);
+  key('ENVIAR<br>TODO', 1530, 112, 150, 150, 'round', () => sendAll(),
     'ENVIAR TODO: manda las 24 tiras al QY100. Úsalo al prenderlo o después de cambiar de patrón.', 'E');
 
   // ---- segunda fila: páginas a la izquierda, acciones a la derecha ----
-  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 210 + i * 230, 310, 210, 62, 'page wide',
+  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 210 + i * 230, 245, 210, 54, 'page wide',
     () => { page = i; sel = 0; render(); },
     i < 2 ? `${p.label}: las partes del modo canción, una por canal MIDI (${p.sub}).`
       : 'PATRÓN: las 8 pistas del modo patrón (D1–C4). Salen por los canales 1–8 con PATT OUT CH 1~8.', String(i + 1)));
-  key('LEER DEL QY<span class="sub">esta página</span>', 1090, 310, 200, 62, 'wide', () => say('Leer: necesita el cable de vuelta (MIDI IN). En la maqueta no hace nada.'),
+  key('LEER DEL QY<span class="sub">esta página</span>', 1090, 245, 200, 54, 'wide', () => say('Leer: necesita el cable de vuelta (MIDI IN). En la maqueta no hace nada.'),
     'LEER DEL QY: trae del QY100 los valores de las 8 tiras de esta página. Necesita el cable de vuelta (MIDI IN).', 'L');
-  key('PUERTO MIDI<span class="sub">L6max MIDI I/O</span>', 1310, 310, 220, 62, 'wide', () => say('Puerto: aquí se elegirá la salida hacia el QY100.'),
+  key('PUERTO MIDI<span class="sub">L6max MIDI I/O</span>', 1310, 245, 220, 54, 'wide', () => say('Puerto: aquí se elegirá la salida hacia el QY100.'),
     'PUERTO MIDI: la salida que llega al QY100. Hoy, la Zoom (L6max MIDI I/O).');
-  const skinKey = key('PIEL<span class="sub">OSCURA</span>', 1530, 310, 180, 62, 'wide', () => {
+  const skinKey = key('PIEL<span class="sub">OSCURA</span>', 1530, 245, 180, 54, 'wide', () => {
     skin = (skin + 1) % SKINS.length;
     if (skin) document.documentElement.dataset.skin = SKINS[skin][0]; else delete document.documentElement.dataset.skin;
     skinKey.querySelector('.sub').textContent = SKINS[skin][1];
     say('Piel: ' + SKINS[skin][1]);
   }, 'PIEL: cambia el aspecto. No toca nada del QY100.', 'P');
 
-  // ---- las 8 tiras ----
-  const X0 = 166, PITCH = 195.5;
+  // ---- las 8 tiras: columnas dentro del hueco del teclado ----
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; };
+  const tirasBox = place(el('div'), 850, 626, 1612, 668);
+  tirasBox.id = 'tiras';
   const strips = [];
-  const dimList = Array.from({ length: 8 }, () => []);
-  function knob(cx, cy, d, label, field, i, helpText, fmt = (v) => String(v)) {
-    const k = deco('ring mk', cx, cy, d, d);
-    const lab = text(label, cx, cy + d / 2 + 13, 15);
-    const val = text('', cx, cy + d / 2 + 30, 0, 'val');
-    dimList[i].push(k, lab, val);
+  const SCALE = [127, 100, 64, 32, 0];
+
+  // una perilla: arrastre relativo (Shift = fino), rueda, flechas, doble clic = de fábrica
+  function perilla(i, label, field, helpText, fmt = (v) => String(v)) {
+    const box = el('div', 'perilla');
+    const k = el('div', 'ring mk'); k.tabIndex = 0; k.setAttribute('role', 'slider'); k.setAttribute('aria-label', label);
+    const val = el('span', 'fl val');
+    box.append(k, el('span', 'fl p-nom', label), val);
     const P = () => PAGES[page].parts[i];
-    const paint = () => { const v = state[P()][field]; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); val.textContent = fmt(v); };
-    const set = (v) => { state[P()][field] = Math.max(0, Math.min(127, Math.round(v))); sel = i; paint(); paintSel(); };
+    const paint = () => { const v = state[P()][field]; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); val.textContent = fmt(v); k.setAttribute('aria-valuetext', fmt(v)); };
+    const set = (v) => { state[P()][field] = Math.max(0, Math.min(127, Math.round(v))); sel = i; paint(); paintSel(); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); };
     let y0 = 0, v0 = 0;
     k.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = state[P()][field]; k.setPointerCapture(e.pointerId); });
-    k.addEventListener('pointermove', (e) => { if (k.hasPointerCapture(e.pointerId)) { set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); } });
-    k.addEventListener('wheel', (e) => { e.preventDefault(); set(state[P()][field] - Math.sign(e.deltaY)); setHelp(helpText(P()) + ' → ' + fmt(state[P()][field])); }, { passive: false });
+    k.addEventListener('pointermove', (e) => { if (k.hasPointerCapture(e.pointerId)) set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); });
+    k.addEventListener('wheel', (e) => { e.preventDefault(); set(state[P()][field] - Math.sign(e.deltaY)); }, { passive: false });
+    k.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 }[e.key];
+      if (d) { e.preventDefault(); e.stopPropagation(); set(state[P()][field] + d); } });
     k.addEventListener('dblclick', () => { set(DEFAULTS[field]); say(`${label} de la ${partName(P())} a ${fmt(DEFAULTS[field])} (de fábrica).`); });
-    explain(k, () => helpText(P()) + '. Arrastra arriba o abajo (Shift = fino), o usa la rueda. Doble clic: ' + fmt(DEFAULTS[field]) + '.');
-    return paint;
+    explain(k, () => helpText(P()) + '. Arrastra arriba o abajo (Shift = fino), rueda o flechas. Doble clic: ' + fmt(DEFAULTS[field]) + '.');
+    return { box, paint };
   }
+
   for (let i = 0; i < 8; i++) {
-    const cx = X0 + i * PITCH;
     const P = () => PAGES[page].parts[i];
     const s = {};
-    s.bg = deco('strip-bg', cx, 664, 186, 588);
-    s.bg.addEventListener('pointerdown', () => { sel = i; paintSel(); });
-    s.num = text('', cx, 392, 0, 'strip-num');
-    s.sub = text('', cx, 424, 14, 'strip-sub');
-    text('ENVÍOS', cx, 452, 13, 'grp');
-    s.knobs = [
-      knob(cx - 44, 494, 52, 'REV', 'rev', i, (p) => `Envío a REVERB de la ${partName(p)}`),
-      knob(cx + 44, 494, 52, 'CHO', 'cho', i, (p) => `Envío a CHORUS de la ${partName(p)}`),
-      knob(cx - 44, 594, 52, 'VAR', 'vari', i, (p) => `Envío a VARIACIÓN de la ${partName(p)}`),
-      knob(cx + 44, 594, 52, 'DRY', 'dry', i, (p) => `DRY: la señal sin efectos de la ${partName(p)}`),
-      knob(cx - 44, 690, 52, 'PAN', 'pan', i, (p) => `PANEO de la ${partName(p)} (C = centro, RND = al azar)`, panText),
+    const tira = el('article', 'tira');
+    tira.addEventListener('pointerdown', () => { if (sel !== i) { sel = i; paintSel(); } });
+    // cabecera
+    const cab = el('div', 'tira-cab');
+    s.num = el('span', 'fl tira-num'); s.canal = el('span', 'fl tira-canal');
+    cab.append(s.num, s.canal);
+    // envíos
+    const envios = el('div', 'perillas');
+    const ks = [
+      perilla(i, 'REV', 'rev', (p) => `Envío a REVERB de la ${partName(p)}`),
+      perilla(i, 'CHO', 'cho', (p) => `Envío a CHORUS de la ${partName(p)}`),
+      perilla(i, 'VAR', 'vari', (p) => `Envío a VARIACIÓN de la ${partName(p)}`),
+      perilla(i, 'DRY', 'dry', (p) => `DRY: la señal sin efectos de la ${partName(p)}`),
     ];
-    s.mute = key('MUTE', cx + 44, 690, 76, 52, 'sm mute', () => {
+    ks.forEach((k) => envios.append(k.box));
+    // paneo y mute
+    const filaPan = el('div', 'fila-pan');
+    const pan = perilla(i, 'PAN', 'pan', (p) => `PANEO de la ${partName(p)} (C = centro, RND = al azar)`, panText);
+    s.mute = el('button', 'fk sm mute', 'MUTE'); s.mute.type = 'button';
+    s.mute.addEventListener('click', () => {
       const st = state[P()]; st.mute = !st.mute; sel = i; render();
       say(P() < 16
         ? (st.mute ? `MUTE canal ${channelOf(P())}: el QY100 ya no lo toca; ${who(P())} sigue sonando.` : `Canal ${channelOf(P())} de vuelta en el QY100.`)
         : (st.mute ? `MUTE ${PATT[P() - 16]}: volumen 0.` : `${PATT[P() - 16]}: volumen de vuelta.`));
-    }, () => (P() < 16
+    });
+    explain(s.mute, () => (P() < 16
       ? `MUTE: el QY100 deja de tocar lo que entra por el canal ${channelOf(P())}; ${who(P())} sigue sonando. Se pierde al apagar el QY100: ENVIAR TODO.`
       : `MUTE: volumen 0 en la pista ${PATT[P() - 16]}. Ojo: el QY100 puede pasarlo como CC 7 y bajar también ${who(P())}.`));
-    const f = document.createElement('input');
-    f.type = 'range'; f.min = 0; f.max = 127; f.className = 'vfader';
-    f.addEventListener('input', () => { state[P()].vol = Number(f.value); sel = i; s.vol.textContent = f.value; paintSel(); setHelp(`VOLUMEN de la ${partName(P())} → ${f.value}`); });
-    f.addEventListener('dblclick', () => { state[P()].vol = DEFAULTS.vol; render(); say(`Volumen de la ${partName(P())} a 100 (de fábrica).`); });
-    explain(f, () => `VOLUMEN de la ${partName(P())}, de 0 a 127. Doble clic: 100.`);
-    place(f, cx - 34, 854, 44, 120);
-    s.fader = f;
-    s.vol = text('', cx - 34, 930, 0, 'val');
-    const volLab = text('VOL', cx - 34, 780, 13, 'grp');
-    dimList[i].push(f, s.vol, volLab);
-    // la cinta
-    const c = document.createElement('div');
-    c.className = 'cinta'; c.contentEditable = 'plaintext-only'; c.spellcheck = false;
-    c.setAttribute('role', 'textbox');
+    filaPan.append(pan.box, s.mute);
+    // fader con escala
+    const fader = el('div', 'fader');
+    const escala = el('div', 'fader-escala');
+    SCALE.forEach((v) => { const m = el('span', v === DEFAULTS.vol ? 'def' : '', String(v)); m.style.top = (100 - v / 127 * 100) + '%'; escala.append(m); });
+    const pista = el('div', 'fader-pista'); pista.tabIndex = 0; pista.setAttribute('role', 'slider'); pista.setAttribute('aria-label', 'Volumen');
+    const tapa = el('div', 'fader-tapa'); pista.append(tapa);
+    s.vol = el('span', 'fader-valor');
+    fader.append(escala, pista, s.vol);
+    const setVol = (v) => { state[P()].vol = Math.max(0, Math.min(127, Math.round(v))); sel = i; paintStrip(i); paintSel(); setHelp(`VOLUMEN de la ${partName(P())} → ${state[P()].vol}`); };
+    let fy0 = 0, fv0 = 0;
+    pista.addEventListener('pointerdown', (e) => { fy0 = e.clientY; fv0 = state[P()].vol; pista.setPointerCapture(e.pointerId); });
+    pista.addEventListener('pointermove', (e) => { if (!pista.hasPointerCapture(e.pointerId)) return;
+      const h = pista.getBoundingClientRect().height || 1; setVol(fv0 + (fy0 - e.clientY) / h * 127 * (e.shiftKey ? 0.25 : 1)); });
+    pista.addEventListener('wheel', (e) => { e.preventDefault(); setVol(state[P()].vol - Math.sign(e.deltaY)); }, { passive: false });
+    pista.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowDown: -1, PageUp: 10, PageDown: -10 }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); setVol(state[P()].vol + d); } });
+    pista.addEventListener('dblclick', () => { setVol(DEFAULTS.vol); say(`Volumen de la ${partName(P())} a 100 (de fábrica).`); });
+    explain(pista, () => `VOLUMEN de la ${partName(P())}, de 0 a 127. Arrastra la tapa (Shift = fino), rueda o flechas. Doble clic: 100.`);
+    s.tapa = tapa;
+    // la cinta, a todo el ancho al pie
+    const zona = el('div', 'cinta-zona');
+    const c = el('div', 'cinta'); c.contentEditable = 'plaintext-only'; c.spellcheck = false; c.setAttribute('role', 'textbox');
     c.style.setProperty('--giro', GIROS[i] + 'deg');
-    c.style.transform = 'translate(-50%, -50%) rotate(var(--giro))';
-    place(c, cx + 34, 870, 112, 40);
+    zona.append(c);
     const paintCinta = () => {
       const empty = !c.textContent && document.activeElement !== c;
       c.classList.toggle('vacia', empty);
-      c.style.transform = empty ? 'translate(-50%, -50%)' : 'translate(-50%, -50%) rotate(var(--giro))';
       c.style.fontSize = '';
       if (empty) return;
-      for (let t = 1.25; t >= 0.6; t -= 0.05) { c.style.fontSize = t + 'cqw'; if (c.scrollWidth <= c.clientWidth) break; }
+      for (let t = 1.3; t >= 0.6; t -= 0.05) { c.style.fontSize = t + 'cqw'; if (c.scrollWidth <= c.clientWidth) break; }
     };
     c.addEventListener('focus', () => { sel = i; paintSel(); paintCinta(); setHelp('Escribe el nombre del sinte de este canal (hasta 12 letras). Enter guarda, Esc cancela.'); });
     c.addEventListener('input', () => { if (c.textContent.length > 12 || /\n/.test(c.textContent)) c.textContent = c.textContent.replace(/\n/g, ' ').slice(0, 12); paintCinta(); });
@@ -267,11 +314,27 @@
     c.addEventListener('blur', () => {
       const t = c.textContent.trim().toUpperCase(); c.textContent = t;
       if (t) cintas[P()] = t; else delete cintas[P()];
-      saveCintas(); paintCinta(); render(); say(t ? `Cinta de la ${partName(P())}: ${t}.` : `Cinta de la ${partName(P())} despegada.`);
+      saveCintas(); render(); say(t ? `Cinta de la ${partName(P())}: ${t}.` : `Cinta de la ${partName(P())} despegada.`);
     });
     explain(c, () => (cintas[P()] ? `Cinta: ${cintas[P()]}. Haz clic para cambiar el nombre.` : 'Haz clic para escribir qué sinte va en este canal.'));
-    s.cinta = c; s.paintCinta = paintCinta;
+
+    tira.append(cab, el('span', 'fl grp', 'ENVÍOS'), envios, el('span', 'fl grp', 'PAN · MUTE'), filaPan, el('span', 'fl grp', 'VOLUMEN'), fader, zona);
+    tirasBox.append(tira);
+    Object.assign(s, { tira, cinta: c, paintCinta, knobs: [...ks, pan] });
     strips.push(s);
+  }
+
+  function paintStrip(i) {
+    const p = PAGES[page].parts[i], s = strips[i], st = state[p];
+    s.num.textContent = p < 16 ? String(p + 1) : PATT[p - 16];
+    s.canal.textContent = 'CANAL ' + channelOf(p);
+    s.tapa.style.top = (100 - st.vol / 127 * 100) + '%';
+    s.vol.textContent = st.vol;
+    s.knobs.forEach((k) => k.paint());
+    s.mute.classList.toggle('on', st.mute);
+    s.tira.classList.toggle('muda', st.mute);
+    if (document.activeElement !== s.cinta) s.cinta.textContent = cintas[p] || '';
+    s.paintCinta();
   }
 
   // ---- pintar ----
@@ -286,20 +349,10 @@
       + `<div class="help">${help || idle}</div>`
       + `<div class="last"><span>${last}</span></div>`;
   }
-  function paintSel() { strips.forEach((s, i) => s.bg.classList.toggle('sel', i === sel)); drawLcd(); }
+  function paintSel() { strips.forEach((s, i) => s.tira.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
     pageKeys.forEach((k, i) => k.classList.toggle('on', i === page));
-    PAGES[page].parts.forEach((p, i) => {
-      const s = strips[i], st = state[p];
-      s.num.textContent = p < 16 ? String(p + 1) : PATT[p - 16];
-      s.sub.textContent = p < 16 ? 'CANAL ' + (p + 1) : 'CANAL ' + (p - 15);
-      s.fader.value = st.vol; s.vol.textContent = st.vol;
-      s.knobs.forEach((paint) => paint());
-      s.mute.classList.toggle('on', st.mute);
-      dimList[i].forEach((el) => { el.style.opacity = st.mute ? '0.45' : ''; });
-      if (document.activeElement !== s.cinta) s.cinta.textContent = cintas[p] || '';
-      s.paintCinta();
-    });
+    strips.forEach((_, i) => paintStrip(i));
     paintSel();
   }
   function sendAll() {
