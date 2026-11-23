@@ -10,7 +10,8 @@
     "consola": "node scripts/copiar-consola.cjs",
     "app": "npm run consola && electron .",
     "comprobar": "npm run consola && QY_MIXER_AUTOCOMPROBAR=1 electron .",
-    "package:mac": "npm run consola && electron-packager . \"QY100 Mixer\" --platform=darwin --arch=arm64 --out=release --overwrite --app-bundle-id=co.afbecerra.qy100-mixer --ignore=\"^/(release|pruebas|scripts|node_modules|\\.gitignore)($|/)\""
+    "icono": "sh scripts/icono.sh",
+    "package:mac": "npm run consola && electron-packager . \"QY100 Mixer\" --platform=darwin --arch=arm64 --out=release --overwrite --app-bundle-id=co.afbecerra.qy100-mixer --icon=assets/icono/qy100-mixer.icns --ignore=\"^/(release|pruebas|scripts|assets|node_modules|\\.gitignore)($|/)\""
   },
   "devDependencies": {
     "@electron/packager": "^18.3.6",

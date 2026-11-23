@@ -8,6 +8,7 @@ GPL-3.0-or-later, like the console it comes from.
 npm install
 npm run app            # opens the window
 npm run package:mac    # leaves "release/QY100 Mixer-darwin-arm64/QY100 Mixer.app"
+npm run icono          # after editing assets/icono/qy100-mixer.svg (needs rsvg-convert)
 ```
 
 - `app/` — the page: `index.html` (the mockup's look), `mixer.js` (everything it does),

@@ -16,6 +16,8 @@ const { pathToFileURL } = require('node:url')
 
 const PERMITIDOS = new Set(['midi', 'midiSysex'])
 const RAIZ = path.join(__dirname, '..', 'app')
+// Packaged, the icon comes from the .icns; run from the repository, the Dock gets this one.
+const ICONO = path.join(__dirname, '..', 'assets', 'icono', 'qy100-mixer-512.png')
 const MARGEN = 18           // px around the faceplate, for its shadow (see #marco in index.html)
 const PROPORCION = 1700 / 1000
 
@@ -135,6 +137,7 @@ ipcMain.on('registro:linea', (_e, linea) => { try { fs.appendFileSync(REGISTRO, 
 
 app.whenReady().then(() => {
   servir()
+  if (!app.isPackaged && process.platform === 'darwin' && app.dock) app.dock.setIcon(ICONO)
   session.defaultSession.setPermissionRequestHandler((_wc, permiso, cb) => cb(PERMITIDOS.has(permiso)))
   session.defaultSession.setPermissionCheckHandler((_wc, permiso) => PERMITIDOS.has(permiso))
   crearVentana()

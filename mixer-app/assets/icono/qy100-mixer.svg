@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- QY100 Mixer: the QY100's silver body, its green screen in the blue frame, and three faders.
+       Colours from app/index.html (qy-plata, qy-azul-marco, the screen's green).
+       Copyright (C) 2026 Felipe Becerra. GNU General Public License v3.0 or later. -->
+  <defs>
+    <linearGradient id="plata" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eceef3"/>
+      <stop offset="0.55" stop-color="#d6d7dd"/>
+      <stop offset="1" stop-color="#aeb0ba"/>
+    </linearGradient>
+    <linearGradient id="marco" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3c4a72"/>
+      <stop offset="1" stop-color="#29355a"/>
+    </linearGradient>
+    <linearGradient id="lcd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9dc9f"/>
+      <stop offset="1" stop-color="#aec482"/>
+    </linearGradient>
+    <linearGradient id="pozo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b3b5bf"/>
+      <stop offset="1" stop-color="#c3c5ce"/>
+    </linearGradient>
+    <linearGradient id="ranura" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1a1d26"/>
+      <stop offset="1" stop-color="#3a3f4d"/>
+    </linearGradient>
+    <linearGradient id="tapa" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b9bcc3"/>
+      <stop offset="0.45" stop-color="#f6f7f9"/>
+      <stop offset="1" stop-color="#9da0a8"/>
+    </linearGradient>
+    <filter id="sombra" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1b2238" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- the body: macOS's rounded plate (824 of 1024, margin 100) -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#plata)"/>
+  <rect x="101" y="101" width="822" height="822" rx="184" fill="none" stroke="#5d6170" stroke-opacity="0.55" stroke-width="2"/>
+  <rect x="104" y="104" width="816" height="816" rx="181" fill="none" stroke="#ffffff" stroke-opacity="0.6" stroke-width="3"/>
+
+  <!-- the screen in its blue frame -->
+  <rect x="176" y="168" width="672" height="250" rx="46" fill="url(#marco)"/>
+  <rect x="214" y="204" width="596" height="178" rx="16" fill="url(#lcd)" stroke="#1b2238" stroke-width="8"/>
+  <rect x="306" y="236" width="412" height="114" rx="57" fill="#1f2a14"/>
+  <text x="512" y="333" text-anchor="middle" font-family="Menlo, Monaco, monospace" font-weight="700" font-size="110" letter-spacing="10" fill="#c9dc9f">QY</text>
+
+  <!-- the well with three faders -->
+  <rect x="176" y="462" width="672" height="388" rx="40" fill="url(#pozo)"/>
+  <rect x="176" y="462" width="672" height="388" rx="40" fill="none" stroke="#1e2335" stroke-opacity="0.25" stroke-width="4"/>
+  <g fill="url(#ranura)">
+    <rect x="322" y="502" width="36" height="308" rx="18"/>
+    <rect x="494" y="502" width="36" height="308" rx="18"/>
+    <rect x="666" y="502" width="36" height="308" rx="18"/>
+  </g>
+  <g filter="url(#sombra)">
+    <rect x="270" y="690" width="140" height="66" rx="10" fill="url(#tapa)" stroke="#3c4152" stroke-width="3"/>
+    <rect x="442" y="556" width="140" height="66" rx="10" fill="url(#tapa)" stroke="#3c4152" stroke-width="3"/>
+    <rect x="614" y="624" width="140" height="66" rx="10" fill="url(#tapa)" stroke="#3c4152" stroke-width="3"/>
+  </g>
+  <g fill="#242c40" fill-opacity="0.7">
+    <rect x="282" y="720" width="116" height="6" rx="3"/>
+    <rect x="454" y="586" width="116" height="6" rx="3"/>
+    <rect x="626" y="654" width="116" height="6" rx="3"/>
+  </g>
+</svg>
