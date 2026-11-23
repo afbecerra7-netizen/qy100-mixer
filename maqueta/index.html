@@ -62,6 +62,24 @@
   .fled { --ledbd: #59607a; }
   .fled.ambar { background-color: var(--qy-ambar); box-shadow: 0 0 0.7cqw var(--qy-ambar); }
   .fk.idioma { font-size: 0.85cqw; font-style: normal; }
+  .fk.modo { flex-direction: row; gap: 0.6cqw; }
+  .fk.modo i { width: 0.75cqw; height: 0.75cqw; border-radius: 50%; background: #2b3550; box-shadow: inset 0 0.08cqw 0.1cqw rgba(0,0,0,.6); }
+  .fk.modo.on i { background: #48f08a; box-shadow: 0 0 0.6cqw #48f08a; }
+  .fk.modo.on { background: linear-gradient(#6e88bd, #52699c); box-shadow: 0 0 0 0.15cqw #fff inset; }
+  .fk.banco { font-size: 1cqw; font-style: normal; }
+  .fk.banco.on { background: linear-gradient(#2c3a62, #1f2a4a); color: #fff; }
+  .fk.banco.apagada { opacity: 0.35; cursor: default; }
+  .maestro { position: absolute; display: flex; flex-direction: column; gap: 0.6cqw; padding: 1cqw 0.8cqw; box-sizing: border-box; z-index: 1;
+    border-radius: 0.6cqw; background: rgba(255,255,255,.32); box-shadow: inset 0 0 0 0.08cqw rgba(36,44,64,.12); }
+  .maestro .fl { position: static; transform: none; pointer-events: auto; }
+  .maestro .ring { position: relative; transform: none; }
+  .fx { display: flex; flex-direction: column; gap: 0.4cqw; padding: 0.6cqw 0 0.4cqw; border-top: 0.08cqw solid rgba(36,44,64,.18); }
+  .fx-nom { font-size: 1.15cqw !important; line-height: 1 !important; }
+  .fx.general { flex: 1; min-height: 0; }
+  .fx.general .fader { flex: 1; }
+  .fx-fila { display: grid; grid-template-columns: 1fr auto; gap: 0.6cqw; align-items: center; }
+  #voces .cols.uno { grid-template-columns: 1fr; }
+  #voces .lista.tipos { grid-template-columns: repeat(6, 1fr); }
   .fk.idioma.on { background: linear-gradient(var(--qy-azul-hi), var(--qy-azul)); color: #fff; border-color: #2c3a5e; }
   .fl.izq { transform: translate(0, -50%); }
   .chapa { font: 700 max(6px, 0.7cqw)/1 system-ui, sans-serif !important; font-style: normal !important; letter-spacing: 0.16em; color: #fff !important; background: var(--qy-ambar);
@@ -77,7 +95,7 @@
   #mixlcd .last { font-size: 1.05cqw; border-top: 0.18cqw solid #1f2a14; padding-top: 0.45cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* ---- las tiras ---- */
-  #tiras { position: absolute; display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.55cqw; padding: 0.55cqw; box-sizing: border-box; z-index: 1; }
+  #tiras { position: absolute; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0.55cqw; padding: 0.55cqw; box-sizing: border-box; z-index: 1; }
   .tira { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 0.42cqw; min-height: 0;
     padding: 0.5cqw 0.5cqw 0.55cqw; border-radius: 0.6cqw; background: rgba(255,255,255,.32); box-shadow: inset 0 0 0 0.08cqw rgba(36,44,64,.12); }
   .tira.sel { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 0.14cqw var(--qy-azul); }
@@ -95,13 +113,13 @@
   .grp { display: flex; align-items: center; gap: 0.5cqw; font-style: normal !important; font-weight: 700 !important; font-size: 0.7cqw !important; letter-spacing: 0.16em; opacity: 0.6; }
   .grp::after { content: ""; flex: 1; height: 0.08cqw; background: currentColor; opacity: 0.6; }
   .perillas { display: grid; gap: 0.25cqw; }
-  .perillas.tres { grid-template-columns: repeat(3, 1fr); }
-  .perillas.dos { grid-template-columns: repeat(2, 1fr); }
+  .perillas.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .perillas.dos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .perilla { display: flex; flex-direction: column; align-items: center; gap: 0.2cqw; cursor: ns-resize; touch-action: none; border-radius: 0.4cqw; padding: 0.1cqw 0; outline: none; }
   .perilla:hover { background: rgba(73,100,150,.12); }
   .perilla:focus-visible { box-shadow: inset 0 0 0 0.15cqw var(--qy-azul); }
   /* la perilla: cuerpo negro, aguja blanca, arco azul con el valor */
-  .mk { width: 2.5cqw; height: 2.5cqw; border: 0 !important; border-radius: 50%;
+  .mk { width: 2.3cqw; height: 2.3cqw; border: 0 !important; border-radius: 50%;
     background: conic-gradient(from -135deg, var(--qy-azul) 0 calc(var(--v, 0) * 270deg), rgba(36,44,64,.18) 0 270deg, transparent 0) !important; }
   .mk::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5b6170, #1d2029 70%); box-shadow: 0 0.1cqw 0.2cqw rgba(0,0,0,.5); }
   .mk::after { content: ""; position: absolute; left: 50%; top: 18%; width: 0.3cqw; height: 32%; background: #fff; border-radius: 0.2cqw;
@@ -181,6 +199,8 @@
       pages: [['CANCIÓN 1–8', 'canales 1–8'], ['CANCIÓN 9–16', 'canales 9–16'], ['PATRÓN', 'pistas D1–C4']],
       rol: ['BATERÍA 1', 'BATERÍA 2', 'PERCUSIÓN', 'BAJO', 'ACORDE 1', 'ACORDE 2', 'ACORDE 3', 'ACORDE 4'],
       chapa: 'MAQUETA', puerto: 'PUERTO', envio: 'ENVÍO', idioma: 'IDIOMA',
+      cancion: 'CANCIÓN', patron: 'PATRÓN', modoSub: 'modo', canalesSub: 'canales', pistasSub: 'D1–C4',
+      maestro: 'EFECTOS DEL QY100', general: 'GENERAL', fx: { rev: 'REVERB', cho: 'CHORUS', vari: 'VARIACIÓN' }, retorno: 'RETORNO', tipoDe: (fx) => 'Tipo de ' + fx,
       sendAll: 'ENVIAR<br>TODO', sendAllSub: '24 tiras', leer: 'LEER DEL QY', leerSub: 'esta página',
       puertoMidi: 'PUERTO MIDI ▾', puertoSub: 'ninguno (maqueta)', efectos: 'EFECTOS',
       suena: 'suena', callado: 'callado', cinta: 'PEGAR CINTA', cerrar: 'CERRAR ✕', ahora: 'Ahora',
@@ -191,6 +211,14 @@
       inicio: 'Maqueta: no manda MIDI. Lo que ves es de muestra, salvo los nombres de las voces.',
       h: {
         idioma: 'IDIOMA: español o inglés. Se recuerda. Los rótulos del aparato (PAN, DRY, REV, QY) no se traducen.',
+        modoCancion: 'CANCIÓN: las 16 partes del modo canción, una por canal MIDI. Se ven de a 8: elige el grupo al lado.',
+        modoPatron: 'PATRÓN: las 8 pistas del modo patrón (batería, percusión, bajo y 4 acordes). Salen por los canales 1–8.',
+        banco: (r) => `Grupo de partes ${r} del modo canción (canales ${r}).`,
+        bancoOff: 'El patrón tiene solo 8 pistas: no hay segundo grupo.',
+        fxTipo: (fx, t) => `${fx}: el efecto del QY100 entero, no de una parte (ahora ${t}). Cada tira decide cuánto le manda. Clic para cambiar el tipo.`,
+        fxVari: ' En patrón la variación es siempre efecto de sistema (manual, p. 122).',
+        fxRet: (fx) => `RETORNO de ${fx}: cuánto vuelve el efecto a la mezcla. Sin probar todavía en el aparato.`,
+        general: 'VOLUMEN GENERAL del QY100, de 0 a 127: todo lo que suena por dentro. Sin probar todavía en el aparato',
         ledPuerto: 'Luz PUERTO: ámbar = maqueta o sin salida MIDI; verde = hay salida hacia el QY100.',
         ledEnvio: 'Luz ENVÍO: parpadea cada vez que algo sale hacia el QY100.',
         sendAll: 'ENVIAR TODO: manda las 24 tiras al QY100 (voz, volumen, efectos y el botón QY). Úsalo al prenderlo o después de cambiar de patrón.',
@@ -221,14 +249,17 @@
         volumen: (q, v) => `Volumen de la ${q}: ${v}.`, volFabrica: (q) => `Volumen de la ${q} a 100 (de fábrica, la raya de la escala).`,
         cinta: (ch, t) => `Cinta del canal ${ch}: ${t}. Vale para canción y patrón.`, cintaFuera: (ch) => `Cinta del canal ${ch} despegada.`,
         voz: (q, v, m, l, pc) => `Voz de la ${q}: ${v} (banco ${m}/${l}, programa ${pc}).`,
-        enviado: 'Enviado: 24 tiras (voz, volumen, efectos y QY). En la maqueta, de mentira.',
+        enviado: 'Enviado: 24 tiras y los 3 efectos del QY100. En la maqueta, de mentira.',
         idioma: 'Idioma: español.',
+        fxTipo: (fx, t) => `${fx}: ${t}.`, fxRet: (fx, v) => `Retorno de ${fx}: ${v}.`, general: (v) => `Volumen general: ${v}.`,
       },
     },
     en: {
       pages: [['SONG 1–8', 'channels 1–8'], ['SONG 9–16', 'channels 9–16'], ['PATTERN', 'tracks D1–C4']],
       rol: ['DRUMS 1', 'DRUMS 2', 'PERCUSSION', 'BASS', 'CHORD 1', 'CHORD 2', 'CHORD 3', 'CHORD 4'],
       chapa: 'MOCKUP', puerto: 'PORT', envio: 'SEND', idioma: 'LANGUAGE',
+      cancion: 'SONG', patron: 'PATTERN', modoSub: 'mode', canalesSub: 'channels', pistasSub: 'D1–C4',
+      maestro: 'QY100 EFFECTS', general: 'MASTER', fx: { rev: 'REVERB', cho: 'CHORUS', vari: 'VARIATION' }, retorno: 'RETURN', tipoDe: (fx) => fx + ' type',
       sendAll: 'SEND<br>ALL', sendAllSub: '24 strips', leer: 'READ FROM QY', leerSub: 'this page',
       puertoMidi: 'MIDI PORT ▾', puertoSub: 'none (mockup)', efectos: 'EFFECTS',
       suena: 'playing', callado: 'silent', cinta: 'ADD TAPE', cerrar: 'CLOSE ✕', ahora: 'Now',
@@ -239,6 +270,14 @@
       inicio: 'Mockup: sends no MIDI. Everything here is sample data, except the voice names.',
       h: {
         idioma: "LANGUAGE: Spanish or English. Remembered. The unit's own labels (PAN, DRY, REV, QY) are not translated.",
+        modoCancion: 'SONG: the 16 Song mode parts, one per MIDI channel. Shown 8 at a time: pick the group beside it.',
+        modoPatron: 'PATTERN: the 8 Pattern mode tracks (drums, percussion, bass and 4 chords). They go out on channels 1–8.',
+        banco: (r) => `Song mode parts ${r} (channels ${r}).`,
+        bancoOff: 'A pattern has only 8 tracks: there is no second group.',
+        fxTipo: (fx, t) => `${fx}: the effect for the whole QY100, not one part (now ${t}). Each strip sets how much it sends. Click to change the type.`,
+        fxVari: ' In Pattern mode variation is always a system effect (owner\'s manual, p. 122).',
+        fxRet: (fx) => `${fx} RETURN: how much of the effect comes back into the mix. Not yet tried on the unit.`,
+        general: 'MASTER VOLUME of the QY100, 0 to 127: everything it plays internally. Not yet tried on the unit',
         ledPuerto: 'PORT light: amber = mockup or no MIDI output; green = there is an output to the QY100.',
         ledEnvio: 'SEND light: blinks every time something goes out to the QY100.',
         sendAll: 'SEND ALL: sends all 24 strips to the QY100 (voice, volume, effects and the QY button). Use it after switching it on or changing pattern.',
@@ -269,8 +308,9 @@
         volumen: (q, v) => `Volume for ${q}: ${v}.`, volFabrica: (q) => `Volume for ${q} back to 100 (factory, the line on the scale).`,
         cinta: (ch, t) => `Tape for channel ${ch}: ${t}. Applies to Song and Pattern.`, cintaFuera: (ch) => `Tape for channel ${ch} removed.`,
         voz: (q, v, m, l, pc) => `Voice for ${q}: ${v} (bank ${m}/${l}, program ${pc}).`,
-        enviado: 'Sent: 24 strips (voice, volume, effects and QY). In the mockup, pretend.',
+        enviado: 'Sent: 24 strips and the QY100\'s 3 effects. In the mockup, pretend.',
         idioma: 'Language: English.',
+        fxTipo: (fx, t) => `${fx}: ${t}.`, fxRet: (fx, v) => `${fx} return: ${v}.`, general: (v) => `Master volume: ${v}.`,
       },
     },
   };
@@ -382,15 +422,21 @@
   deco('ring', 1530, 112, 205, 205);
   const sendKey = key(`${L.sendAll}<span class="sub">${L.sendAllSub}</span>`, 1530, 112, 150, 150, 'round azul', () => sendAll(), L.h.sendAll, 'E');
 
-  // ---- páginas (juntas, como un selector) y acciones ----
-  const pageKeys = PAGES.map((p, i) => key(`${p.label}<span class="sub">${p.sub}</span>`, 185 + i * 206, 245, 204, 54, 'page azul wide',
-    () => { page = i; sel = 0; render(); flashKey(pageKeys[i]); },
-    i < 2 ? L.h.paginaCancion(p.label, p.sub) : L.h.paginaPatron, String(i + 1)));
+  // ---- modo y grupo, separados como en el QY100: SONG/PATTERN por un lado, qué 8 partes por otro ----
+  let mode = 0, bank = 0;                       // modo 0 canción, 1 patrón; grupo 0 = 1–8, 1 = 9–16
+  const setView = (m, b) => { mode = m; if (b !== undefined) bank = b; page = mode === 1 ? 2 : bank; sel = 0; render(); };
+  const modeKeys = [
+    key(`<i></i>${L.cancion}`, 128, 245, 168, 54, 'modo azul wide', () => setView(0), L.h.modoCancion, '1'),
+    key(`<i></i>${L.patron}`, 304, 245, 168, 54, 'modo azul wide', () => setView(1), L.h.modoPatron, '3'),
+  ];
+  text(L.canalesSub.toUpperCase(), 520, 212, 14);
+  const bankKeys = ['1–8', '9–16'].map((r, b) => key(r, 470 + b * 100, 248, 96, 46, 'banco',
+    () => { if (mode === 0) setView(0, b); }, () => (mode === 0 ? L.h.banco(r) : L.h.bancoOff), b === 1 ? '2' : ''));
   const readKey = key(`${L.leer}<span class="sub">${L.leerSub}</span>`, 1110, 245, 200, 54, 'wide', () => say(L.s.leer), L.h.leer, 'L');
   key(`${L.puertoMidi}<span class="sub">${L.puertoSub}</span>`, 1350, 245, 250, 54, 'oscura wide', () => say(L.s.puerto), L.h.puerto);
 
   // ---- las tiras ----
-  const tirasBox = place(el('div'), 850, 626, 1612, 668);
+  const tirasBox = place(el('div'), 704, 626, 1320, 668);
   tirasBox.id = 'tiras';
   const strips = [];
   const SCALE = [127, 100, 64, 32, 0];
@@ -497,6 +543,92 @@
     strips.push(s);
   }
 
+  // ---- los efectos del QY100 entero: tipo y retorno de reverb, chorus y variación ----
+  const TIPOS = {
+    rev: ['NO EFFECT', 'HALL1', 'HALL2', 'ROOM1', 'ROOM2', 'ROOM3', 'STAGE1', 'STAGE2', 'PLATE', 'WHITE ROOM', 'TUNNEL', 'BASEMENT'],
+    cho: ['NO EFFECT', 'CHORUS1', 'CHORUS2', 'CHORUS3', 'CHORUS4', 'CELESTE1', 'CELESTE2', 'CELESTE3', 'CELESTE4', 'FLANGER1', 'FLANGER2', 'FLANGER3'],
+    vari: ['NO EFFECT', 'HALL1', 'HALL2', 'ROOM1', 'ROOM2', 'ROOM3', 'STAGE1', 'STAGE2', 'PLATE', 'DELAY L,C,R', 'DELAY L,R', 'ECHO', 'CROSS DELAY',
+      'EARLY REF1', 'EARLY REF2', 'GATE REVERB', 'REVERSE GATE', 'KARAOKE 1', 'KARAOKE 2', 'KARAOKE 3', 'CHORUS1', 'CHORUS2', 'CHORUS3', 'CHORUS4',
+      'CELESTE1', 'CELESTE2', 'CELESTE3', 'CELESTE4', 'FLANGER1', 'FLANGER2', 'FLANGER3', 'SYMPHONIC', 'ROTARY SPEAKER', 'TREMOLO', 'AUTO PAN',
+      'PHASER1', 'PHASER2', 'DISTORTION', 'OVER DRIVE', 'AMP SIMULATOR', '3BAND EQ (MONO)', '2BAND EQ (STEREO)', 'AUTO WAH (LFO)', 'THRU'],
+  };
+  const maestro = { rev: { tipo: 1, ret: 64 }, cho: { tipo: 1, ret: 64 }, vari: { tipo: 9, ret: 64 } };   // HALL1, CHORUS1, DELAY L,C,R: los de fábrica
+  const colFx = place(el('div', 'maestro'), 1512, 626, 272, 668);
+  colFx.append(el('span', 'fl grp', L.maestro));
+  const pintaFx = [];
+  for (const fx of ['rev', 'cho', 'vari']) {
+    const nombre = L.fx[fx];
+    const bloque = el('div', 'fx');
+    const tipo = el('button', 'voz'); tipo.type = 'button';
+    tipo.addEventListener('click', () => abrirLista(L.tipoDe(nombre), TIPOS[fx], maestro[fx].tipo, (ti) => {
+      maestro[fx].tipo = ti; pulseSend(); pintaFx.forEach((f) => f()); say(L.s.fxTipo(nombre, TIPOS[fx][ti]));
+    }));
+    explain(tipo, () => L.h.fxTipo(nombre, TIPOS[fx][maestro[fx].tipo]) + (fx === 'vari' ? L.h.fxVari : ''));
+    // el retorno: una perilla como las de las tiras, pero del QY100 entero
+    const box = el('div', 'perilla'); box.tabIndex = 0; box.setAttribute('role', 'slider');
+    const k = el('div', 'ring mk'); const val = el('span', 'fl val');
+    box.append(k, el('span', 'fl p-nom', L.retorno), val);
+    const paint = () => { const v = maestro[fx].ret; k.style.setProperty('--a', (v / 127 * 270 - 135) + 'deg'); k.style.setProperty('--v', v / 127); val.textContent = v; };
+    const set = (v) => { maestro[fx].ret = Math.max(0, Math.min(127, Math.round(v))); paint(); pulseSend(); setHelp(`${L.h.fxRet(nombre)} → ${maestro[fx].ret}`); };
+    let y0 = 0, v0 = 0, moved = false;
+    box.addEventListener('pointerdown', (e) => { y0 = e.clientY; v0 = maestro[fx].ret; moved = false; box.setPointerCapture(e.pointerId); });
+    box.addEventListener('pointermove', (e) => { if (box.hasPointerCapture(e.pointerId)) { moved = true; set(v0 + (y0 - e.clientY) * (e.shiftKey ? 0.2 : 0.8)); } });
+    box.addEventListener('pointerup', () => { if (moved) say(L.s.fxRet(nombre, maestro[fx].ret)); });
+    box.addEventListener('wheel', (e) => { e.preventDefault(); set(maestro[fx].ret - Math.sign(e.deltaY)); }, { passive: false });
+    box.addEventListener('dblclick', () => { set(64); say(L.s.fxRet(nombre, 64)); });
+    explain(box, () => L.h.perilla(L.h.fxRet(nombre), 64));
+    const fila = el('div', 'fx-fila'); fila.append(tipo, box);
+    bloque.append(el('span', 'fl fx-nom', nombre), fila);
+    colFx.append(bloque);
+    pintaFx.push(() => { tipo.innerHTML = `<span>${TIPOS[fx][maestro[fx].tipo]}</span><span>▾</span>`; paint(); });
+  }
+  // el volumen general del QY100 (XG Master Volume): el máster de la mesa
+  const general = el('div', 'fx general');
+  const gf = el('div', 'fader');
+  const gEsc = el('div', 'fader-escala');
+  SCALE.forEach((v) => { const m = el('span', v === 127 ? 'def' : '', String(v)); m.style.top = (100 - v / 127 * 100) + '%'; gEsc.append(m); });
+  const gPista = el('div', 'fader-pista'); gPista.tabIndex = 0; gPista.setAttribute('role', 'slider');
+  const gTapa = el('div', 'fader-tapa'); gPista.append(gTapa);
+  const gVal = el('span', 'fader-valor');
+  gf.append(gEsc, gPista, gVal);
+  general.append(el('span', 'fl fx-nom', L.general), gf);
+  colFx.append(general);
+  maestro.vol = 127;
+  const pintaGeneral = () => { gTapa.style.top = (100 - maestro.vol / 127 * 100) + '%'; gVal.textContent = maestro.vol; };
+  const setGen = (v) => { maestro.vol = Math.max(0, Math.min(127, Math.round(v))); pintaGeneral(); pulseSend(); setHelp(`${L.h.general} → ${maestro.vol}`); };
+  let gy0 = 0, gv0 = 0, gmoved = false;
+  gPista.addEventListener('pointerdown', (e) => {
+    if (e.target !== gTapa) { const r = gPista.getBoundingClientRect(); setGen((1 - (e.clientY - r.top) / r.height) * 127); }
+    gy0 = e.clientY; gv0 = maestro.vol; gmoved = e.target !== gTapa; gPista.setPointerCapture(e.pointerId);
+  });
+  gPista.addEventListener('pointermove', (e) => { if (!gPista.hasPointerCapture(e.pointerId)) return; gmoved = true;
+    const h = gPista.getBoundingClientRect().height || 1; setGen(gv0 + (gy0 - e.clientY) / h * 127 * (e.shiftKey ? 0.25 : 1)); });
+  gPista.addEventListener('pointerup', () => { if (gmoved) say(L.s.general(maestro.vol)); });
+  gPista.addEventListener('wheel', (e) => { e.preventDefault(); setGen(maestro.vol - Math.sign(e.deltaY)); }, { passive: false });
+  gPista.addEventListener('keydown', (e) => { const d = { ArrowUp: 1, ArrowDown: -1, PageUp: 10, PageDown: -10 }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); setGen(maestro.vol + d); } });
+  gPista.addEventListener('dblclick', () => { setGen(127); say(L.s.general(127)); });
+  explain(gPista, () => L.h.general + '. ' + L.h.fader('').split('. ').slice(1).join('. ').replace('100, la raya', '127').replace('100, the line', '127'));
+  pintaFx.push(pintaGeneral);
+  pintaFx.forEach((f) => f());
+
+  // una lista simple, en el mismo panel que las voces, para los tipos de efecto
+  function abrirLista(titulo, items, actual, onPick) {
+    voces.innerHTML = '';
+    const cab = el('div', 'cab', `<span>${titulo}</span><span class="grow"></span><small>${L.ahora}: ${items[actual]}</small>`);
+    const cerrar = el('button', 'cerrar', L.cerrar); cerrar.type = 'button'; cerrar.addEventListener('click', cerrarVoces);
+    cab.append(cerrar);
+    const lista = el('div', 'lista voces-l tipos');
+    items.forEach((t, ti) => {
+      const b = el('button', 'it' + (ti === actual ? ' on' : ''), t); b.type = 'button';
+      b.addEventListener('click', () => { cerrarVoces(); onPick(ti); });
+      lista.append(b);
+    });
+    const cols = el('div', 'cols uno'); cols.append(lista);
+    voces.append(cab, cols);
+    voces.hidden = false;
+    (lista.querySelector('.on') || lista.querySelector('button'))?.focus();
+  }
+
   // ---- el selector de voces ----
   const voces = place(el('div'), 850, 150, 1560, 270);
   voces.id = 'voces'; voces.hidden = true;
@@ -572,7 +704,8 @@
   }
   function paintSel() { strips.forEach((s, i) => s.tira.classList.toggle('sel', i === sel)); drawLcd(); }
   function render() {
-    pageKeys.forEach((k, i) => k.classList.toggle('on', i === page));
+    modeKeys.forEach((k, i) => k.classList.toggle('on', i === mode));
+    bankKeys.forEach((k, b) => { k.classList.toggle('on', mode === 0 && b === bank); k.classList.toggle('apagada', mode === 1); });
     strips.forEach((_, i) => paintStrip(i));
     paintSel();
   }
@@ -585,7 +718,7 @@
   addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || !voces.hidden) return;
     const k = e.key.toLowerCase();
-    if (k >= '1' && k <= '3') pageKeys[Number(k) - 1].click();
+    if (k === '1') setView(0, 0); else if (k === '2') setView(0, 1); else if (k === '3') setView(1);
     else if (k === 'e') sendKey.click();
     else if (k === 'l') { flashKey(readKey); readKey.click(); }
   });
